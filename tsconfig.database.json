@@ -1,0 +1,6 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "incremental": false, "plugins": [], "paths": {} },
+  "include": ["packages/database/**/*.ts", "scripts/postgres.ts", "scripts/migration-values.ts", "scripts/migration-values.test.ts", "scripts/migrate-mongodb-to-postgres.ts"],
+  "exclude": ["node_modules"]
+}

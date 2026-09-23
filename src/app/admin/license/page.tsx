@@ -1,0 +1,12 @@
+"use client";
+import { useEffect, useState } from "react";
+import { Alert, Button, Card, CardBody, CardHeader } from "@/components/ui";
+import { ShieldCheck } from "lucide-react";
+import { api, errorMessage } from "@/lib/client-api";
+
+type Snapshot = { plan: string; status: string; features: string[]; expiresAt: string | null; graceUntil: string | null; installationId: string | null; source: string; featureLabels: Record<string, string> };
+export default function LicensePage() {
+  const [data, setData] = useState<Snapshot | null>(null), [error, setError] = useState(""), [retry, setRetry] = useState(0);
+  useEffect(() => { let active = true; api.get<Snapshot>("/api/v1/license", { cache: "no-store" }).then((res) => { if (active) setData(res.data ?? null); }).catch((err) => { if (active) setError(errorMessage(err)); }); return () => { active = false; }; }, [retry]);
+  return <div className="page-stack"><div><h1 className="text-heading-lg">Lisensi & Paket</h1><p className="text-body text-muted">Status entitlement berasal dari HRIS Agent lokal. License key dan activation secret tidak pernah ditampilkan di browser.</p></div><Card><CardHeader icon={ShieldCheck} title="Status instalasi"/><CardBody className="space-y-4">{error ? <Alert tone="danger">{error}<Button variant="secondary" onClick={() => setRetry((n) => n + 1)}>Coba lagi</Button></Alert> : !data ? <p>Memuat…</p> : <><div className="grid-cards"><div><p className="text-caption text-muted">Paket</p><p className="font-semibold uppercase">{data.plan}</p></div><div><p className="text-caption text-muted">Status</p><p className="font-semibold">{data.status}</p></div><div><p className="text-caption text-muted">Sumber</p><p className="font-semibold">{data.source}</p></div></div>{data.status === "unlicensed" && <Alert>Instalasi berjalan dalam mode Community. Hubungkan HRIS Agent dan aktifkan lisensi untuk memakai fitur Pro.</Alert>}<ul className="divide-y divide-[var(--border)]">{Object.entries(data.featureLabels).map(([key, label]) => <li key={key} className="py-3 flex justify-between gap-3"><span>{label}</span><strong>{data.features.includes(key) ? "Aktif" : "Terkunci"}</strong></li>)}</ul><p className="text-caption text-muted">Lease berakhir: {data.expiresAt ? new Date(data.expiresAt).toLocaleString("id-ID") : "—"}. Grace sampai: {data.graceUntil ? new Date(data.graceUntil).toLocaleString("id-ID") : "—"}.</p></>}</CardBody></Card></div>;
+}

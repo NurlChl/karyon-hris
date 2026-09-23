@@ -1,0 +1,47 @@
+# Image-only: usable from raw Compose after publishing your image.
+services:
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${HRIS_DB_NAME:-hris}
+      POSTGRES_USER: ${HRIS_DB_USER:-hris}
+      POSTGRES_PASSWORD: ${HRIS_DB_PASSWORD:?Set database password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    image: ${HRIS_IMAGE:?Set a published image tag or digest}
+    restart: unless-stopped
+    environment:
+      HRIS_DATABASE_URL: ""
+      HRIS_DB_NAME: ${HRIS_DB_NAME:-hris}
+      HRIS_DB_USER: ${HRIS_DB_USER:-hris}
+      HRIS_DB_PASSWORD: ${HRIS_DB_PASSWORD:?Set database password}
+      AUTH_SECRET: ${AUTH_SECRET:?Set session secret}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:?Set encryption key}
+      STORAGE_SIGNING_SECRET: ${STORAGE_SIGNING_SECRET:?Set signing secret}
+      CRON_SECRET: ${CRON_SECRET:?Set cron secret}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      SEED_STAFF_PASSWORD: ${SEED_STAFF_PASSWORD:-}
+      HRIS_DB_HOST: postgres
+      HRIS_DB_PORT: "5432"
+      HRIS_DB_SSL: disable
+      AUTH_TRUST_HOST: "true"
+      LOCAL_STORAGE_PATH: /app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-3000}:3000"
+    volumes:
+      - uploads:/app/storage
+volumes:
+  postgres_data:
+  uploads:
+

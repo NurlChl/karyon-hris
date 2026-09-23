@@ -1,0 +1,71 @@
+import type { DynamicValue } from "./schema";
+import test from "node:test";
+import assert from "node:assert/strict";
+import { PGlite } from "@electric-sql/pglite";
+import { Database, RecordId, Schema } from "./model";
+import { migrateSchema } from "./migrations";
+import { normalize } from "./schema";
+
+test("schema string format validation is preserved", () => {
+  const field = { type: String, match: /^\d{4}-\d{2}-\d{2}$/ };
+  assert.equal(normalize(field, "2026-09-22", "dateKey"), "2026-09-22");
+  assert.throws(() => normalize(field, "invalid", "dateKey"), /Validation failed/);
+});
+
+test("PostgreSQL native schema, constraints, queries and transactions", async () => {
+  const pg = new PGlite(); const db = new Database("TEST_", pg);
+  const Role = db.model("Role", new Schema({ name: { type: String, unique: true, required: true } }));
+  const Position = db.model("Position", new Schema({ type: { type: String, default: "Full-Time" }, roleId: { type: Schema.Types.Id, ref: "Role" } }));
+  const User = db.model("User", new Schema({ email: { type: String, required: true, lowercase: true, unique: true }, passwordHash: { type: String, select: false }, roleId: { type: Schema.Types.Id, ref: "Role", required: true }, active: { type: Boolean, default: true }, count: { type: Number, default: 0 }, expiresAt: Date, steps: [{ status: String, actor: String }], profile: { city: String }, tags: [String] }, { timestamps: true }));
+  try {
+    await migrateSchema(db); await migrateSchema(db);
+    const role = await Role.create({ name: "OWNER" });
+    const position = await Position.create({ roleId: role._id });
+    assert.equal((await Position.findById(position._id).populate("roleId", "name")).roleId.name, "OWNER");
+    const user = await User.create({ email: "ONE@EXAMPLE.TEST", passwordHash: "secret", roleId: role._id, expiresAt: new Date("2030-01-01T00:00:00Z"), steps: [{ status: "pending", actor: "HRD" }], profile: { city: "Jakarta" }, tags: ["a"] });
+    assert.equal(user.email,"one@example.test"); assert.equal(user.passwordHash,undefined);
+    assert.equal((await User.findById(user._id).select("+passwordHash")).passwordHash,"secret");
+    assert.deepEqual(Object.keys(await User.findById(user._id).select("_id").lean()),["_id"]);
+    assert.equal((await User.findById(user._id).populate("roleId", "name")).roleId.name,"OWNER");
+    assert.equal(await User.countDocuments({ email: /ONE/i }),1);
+    assert.equal(await User.countDocuments({ profile: { city: "Jakarta" } }),1);
+    assert.equal(await User.countDocuments({ "profile.city": "Jakarta", tags: { $in: ["a"] } }),1);
+    assert.equal(await User.countDocuments({ steps: { $elemMatch: { status: "pending", actor: "HRD" } } }),1);
+    assert.equal(await User.countDocuments({ expiresAt: new Date("2030-01-01T00:00:00Z") }),1);
+    assert.equal(await User.countDocuments({ email: "' OR 1=1 --" }),0);
+    await assert.rejects(User.create({ email: "one@example.test", roleId: role._id }), (e:DynamicValue)=>e.code===11000);
+    await assert.rejects(User.create({ email: "two@example.test", roleId: String(new RecordId()) }), (e:DynamicValue)=>e.code==="23503");
+    const first = await User.findById(user._id), stale = await User.findById(user._id);
+    first.count=10; await first.save(); stale.count=99; await assert.rejects(stale.save(), /CONFLICT/);
+    const projected = await User.findById(user._id).select("email"); projected.email="new@example.test"; await projected.save();
+    assert.equal(projected.passwordHash,undefined);assert.equal(projected.count,undefined);
+    assert.equal((await User.findById(user._id).select("+passwordHash")).passwordHash,"secret");
+    await User.updateOne({_id:user._id},{$inc:{count:2},$push:{steps:{status:"approved",actor:"OWNER"}}});
+    assert.equal((await User.findById(user._id)).count,12);
+    assert.equal((await User.findById(user._id).select("steps.status").lean()).steps[0].actor,undefined);
+    await assert.rejects(db.transaction(async()=>{await Role.create({name:"ROLLBACK"});throw new Error("rollback");}),/rollback/);
+    assert.equal(await Role.countDocuments({name:"ROLLBACK"}),0);
+    const aggregated = await User.aggregate([{$match:{active:true}},{$group:{_id:"$roleId",count:{$sum:1},total:{$sum:"$count"}}}]);
+    assert.equal(aggregated[0].count,1);assert.equal(aggregated[0].total,12);
+    const dates = await User.aggregate([{$project:{month:{$month:{date:"$expiresAt",timezone:"Asia/Jakarta"}}}},{$match:{month:1}}]);
+    assert.equal(dates.length,1);
+    await assert.rejects(User.find({$where:"dangerous"}).exec(),/Unsupported/);
+    assert.deepEqual(await User.deleteOne({ _id: user._id }), { deletedCount: 1 });
+    assert.deepEqual(await User.deleteMany({}), { deletedCount: 0 });
+    const upsertId = new RecordId();
+    const upserted = await User.findOneAndUpdate({ _id: upsertId, roleId: new RecordId(role._id) }, { $set: { email: "upsert@example.test" } }, { upsert: true, new: true });
+    assert.equal(upserted._id, upsertId.toString());
+    assert.equal(upserted.roleId, role._id);
+    assert.deepEqual(await upserted.deleteOne(), { deletedCount: 1 });
+    assert.equal(await User.findById(upsertId), null);
+    const batchIds = [new RecordId().toString(), new RecordId().toString()];
+    const batch = batchIds.map((_id, i) => ({ updateOne: { filter: { _id }, update: { $setOnInsert: { _id, email: `batch${i}@example.test`, roleId: role._id } }, upsert: true } }));
+    assert.equal((await User.bulkWrite(batch)).upsertedCount, 2);
+    assert.equal((await User.bulkWrite(batch)).upsertedCount, 0);
+    const beforeBatch = await User.countDocuments();
+    const badBatch = batch.map((op, i) => ({ updateOne: { filter: { _id: new RecordId().toString() }, update: { $setOnInsert: { ...op.updateOne.update.$setOnInsert, email: i ? "batch0@example.test" : "batch-new@example.test" } }, upsert: true } }));
+    for (const op of badBatch) op.updateOne.update.$setOnInsert._id = op.updateOne.filter._id;
+    await assert.rejects(User.bulkWrite(badBatch));
+    assert.equal(await User.countDocuments(), beforeBatch);
+  } finally { await pg.close(); }
+});

@@ -1,0 +1,16 @@
+node_modules/
+.cache/
+.next*/
+dist/
+coverage/
+.env*
+!.env.example
+!.env.compose.example
+storage/
+*.tsbuildinfo
+next-env.d.ts
+*.log
+*.pem
+*.dump
+backups/
+LOCAL-ACCESS.private.md

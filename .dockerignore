@@ -1,0 +1,13 @@
+.git
+.cache
+node_modules
+.next*
+dist
+.env*
+storage
+coverage
+*.log
+*.pem
+*.dump
+backups
+LOCAL-ACCESS.private.md

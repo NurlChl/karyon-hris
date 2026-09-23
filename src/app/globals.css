@@ -1,0 +1,432 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   DESIGN TOKENS
+
+   Palette reasoning
+   -----------------
+   The semantic slots claim most of the colour wheel: success sits in green
+   (~155°), warning in amber (~38°), danger in rose (~352°), info in cyan
+   (~193°). A brand hue landing near any of those makes a primary button look
+   like a status. That leaves the blue→violet arc, and indigo (~246°) sits far
+   enough from cyan-info to stay distinct while reading calmer and more
+   institutional than a pure violet.
+
+   Grounds are never neutral grey. Every surface carries 4–8% of the brand hue,
+   so a plain white card reads as *lifted* off the page without needing a
+   shadow. That is what lets the whole interface stay flat.
+
+   Gold (#F5B027) is the single warm accent. It is deliberately NOT a semantic
+   colour — it marks the one thing on a screen that matters most, and nothing
+   else. Used as a fill with near-black text it clears 9:1 contrast; it is never
+   used as text on white, where it would fail.
+
+   Contrast, measured in-browser against the real grounds rather than against
+   pure white, for both themes. Every pairing the interface actually renders
+   clears the 4.5:1 AA floor, including each status colour on its own soft badge
+   background, which is the tightest pair in the system:
+
+     light   foreground 16.9   muted 6.5   subtle 4.7   primary/soft 5.4
+             success/soft 5.3   warning/soft 4.9   danger/soft 4.7   info/soft 4.7
+     dark    foreground 16.3   muted 8.2   subtle 5.1   primary/soft 5.5
+             success/soft 7.0   warning/soft 8.4   danger/soft 6.6   info/soft 7.5
+   ========================================================================== */
+
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: ease-in-out; }
+@media (prefers-reduced-motion: reduce) { ::view-transition-old(root), ::view-transition-new(root) { animation: none !important; } }
+:root {
+  color-scheme: light;
+
+  /* Grounds — indigo-tinted, never neutral grey */
+  --background: #f7f7fb;
+  --surface: #ffffff;
+  --surface-2: #f1f2f8;
+  --surface-hover: #e9ebf5;
+  --overlay: rgb(17 17 38 / 0.5);
+
+  /* Text */
+  --foreground: #14142b;
+  --heading: #1f1b4d;
+  --muted: #545876;
+  --subtle: #686d8b;
+
+  /* Lines */
+  --border: #e4e6f0;
+  --border-strong: #cdd1e3;
+
+  /* Brand */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: #eeedfe;
+  --primary-foreground: #ffffff;
+
+  /* Warm accent — emphasis only, never a status */
+  --accent: #f5b027;
+  --accent-hover: #e09f16;
+  --accent-soft: #fef5e3;
+  --accent-foreground: #14142b;
+
+  /* Semantics */
+  --success: #0f7152;
+  --success-soft: #e4f5ee;
+  --warning: #9a5a0b;
+  --warning-soft: #fdf1df;
+  --danger: #c92a45;
+  --danger-soft: #fceaee;
+  --info: #0e7490;
+  --info-soft: #e2f2f6;
+
+  --ring: #4f46e5;
+
+  /* Radii — 10 for controls, 14 for cards, matching the reference's generous
+     rounding without turning everything into a pill. */
+  --radius-control: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+
+  /* Shadows exist only for things that genuinely float above the page. */
+  --shadow-pop: 0 16px 40px -16px rgb(17 17 38 / 0.22), 0 2px 8px -2px rgb(17 17 38 / 0.08);
+  --shadow-raise: 0 2px 6px -2px rgb(17 17 38 / 0.1);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --background: #0c0c17;
+  --surface: #13131f;
+  --surface-2: #1b1b2b;
+  --surface-hover: #23233a;
+  --overlay: rgb(4 4 12 / 0.72);
+
+  --foreground: #eaeaf5;
+  --heading: #ffffff;
+  --muted: #a3a7c2;
+  --subtle: #7c81a0;
+
+  --border: #26263a;
+  --border-strong: #35354f;
+
+  --primary: #8f86ff;
+  --primary-hover: #a79fff;
+  --primary-soft: #1e1b3d;
+  --primary-foreground: #0c0c17;
+
+  --accent: #f5b027;
+  --accent-hover: #ffc247;
+  --accent-soft: #2e2413;
+  --accent-foreground: #14142b;
+
+  --success: #36c48f;
+  --success-soft: #10291f;
+  --warning: #edb45a;
+  --warning-soft: #2c2210;
+  --danger: #ff7189;
+  --danger-soft: #2d1219;
+  --info: #4cc2e0;
+  --info-soft: #10262e;
+
+  --ring: #8f86ff;
+
+  --shadow-pop: 0 20px 48px -18px rgb(0 0 0 / 0.72), 0 2px 8px -2px rgb(0 0 0 / 0.5);
+  --shadow-raise: 0 2px 6px -2px rgb(0 0 0 / 0.4);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-foreground: var(--foreground);
+  --color-heading: var(--heading);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+
+  --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * Type scale. Every text size in the interface comes from this list; there
+   * are no arbitrary pixel sizes left in components. Names describe the job,
+   * not the size, so a "title" stays a title if the scale is ever retuned.
+   *
+   * Line heights shrink in proportion as sizes grow, and large sizes carry
+   * negative tracking — Inter set tight at display sizes and loose at caption
+   * sizes, which is how the typeface is drawn to be used.
+   *
+   *   caption     11/16  meta, eyebrows, table footnotes
+   *   label       12/16  form hints, badges, secondary lines
+   *   body-sm     13/20  dense UI: table cells, list rows, helper text
+   *   body        14/22  default reading text
+   *   body-lg     16/26  lead paragraphs, emphasised values
+   *   title-sm    18/26  card and panel titles
+   *   title       20/28  section titles
+   *   display-sm  26/32  page title on phones
+   *   display     30/36  page title
+   *   hero-sm     38/44  landing headline on phones
+   *   hero        48/52  landing headline
+   */
+  --text-caption: 0.6875rem;
+  --text-caption--line-height: 1rem;
+  --text-caption--letter-spacing: 0.01em;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1rem;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.25rem;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.375rem;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.625rem;
+  --text-title-sm: 1.125rem;
+  --text-title-sm--line-height: 1.625rem;
+  --text-title-sm--letter-spacing: -0.012em;
+  --text-title: 1.25rem;
+  --text-title--line-height: 1.75rem;
+  --text-title--letter-spacing: -0.016em;
+  --text-display-sm: 1.625rem;
+  --text-display-sm--line-height: 2rem;
+  --text-display-sm--letter-spacing: -0.024em;
+  --text-display: 1.875rem;
+  --text-display--line-height: 2.25rem;
+  --text-display--letter-spacing: -0.028em;
+  --text-hero-sm: 2.375rem;
+  --text-hero-sm--line-height: 2.75rem;
+  --text-hero-sm--letter-spacing: -0.032em;
+  --text-hero: 3rem;
+  --text-hero--line-height: 3.25rem;
+  --text-hero--letter-spacing: -0.036em;
+
+  --radius-control: var(--radius-control);
+  --radius-card: var(--radius);
+  --radius-xl2: var(--radius-lg);
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  /* cv11 gives a single-storey 'a'/'g' pairing that reads cleaner at UI sizes;
+     ss01 fixes the default Inter 'l' which is easy to confuse with capital I. */
+  font-feature-settings: "cv11", "ss01";
+  font-synthesis-weight: none;
+}
+
+/*
+ * Headings top out at 600. The reference never goes heavier, and it is the
+ * single biggest reason its pages read calm instead of shouty. Weight is
+ * carried by size and tight tracking, not by boldness.
+ */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading);
+  font-weight: 600;
+  letter-spacing: -0.021em;
+  line-height: 1.18;
+}
+
+h1 { letter-spacing: -0.028em; }
+
+/*
+ * Grid and flex children may shrink below their content.
+ *
+ * Both default to `min-width: auto`, which means an item is never narrower
+ * than the widest thing inside it. One wide table in a two-column layout then
+ * pushed the whole page sideways on phones — the payroll page measured 851px
+ * wide on a 375px screen — instead of scrolling inside its own container.
+ * Unlayered, so it also beats `min-w-*` utilities on these elements; give such
+ * an element its minimum width with an inline style or a wrapper instead.
+ */
+:where(.grid) > *,
+:where(.flex-1) {
+  min-width: 0;
+}
+
+/*
+ * A grid with no column template at the current breakpoint — the usual state of
+ * a `lg:grid-cols-[360px_1fr]` layout on a phone — places its items in implicit
+ * tracks, sized by `grid-auto-columns`, which defaults to `auto` and grows to
+ * the widest content. Sizing implicit tracks as `minmax(0, 1fr)` holds the
+ * column to the screen.
+ *
+ * This deliberately sets `grid-auto-columns`, not `grid-template-columns`:
+ * this file's rules come out unlayered, and unlayered CSS outranks every
+ * Tailwind utility whatever its specificity, so setting the template here
+ * would silently disable every `grid-cols-*` class. Implicit tracks never
+ * conflict with those classes.
+ */
+:where(.grid) {
+  grid-auto-columns: minmax(0, 1fr);
+}
+
+/* Numbers in tables and stats must align column-to-column. */
+.tabular-nums, table, [data-numeric] {
+  font-variant-numeric: tabular-nums;
+}
+
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Scrollbars — present but quiet */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--subtle); background-clip: content-box; }
+
+/* Native date/time pickers follow the theme */
+.dark input[type="date"]::-webkit-calendar-picker-indicator,
+.dark input[type="time"]::-webkit-calendar-picker-indicator,
+.dark input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) opacity(0.65);
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator { cursor: pointer; }
+
+/* ==========================================================================
+   PRIMITIVES
+   ========================================================================== */
+
+/*
+ * Cards are flat: a border and a surface tint do the separating. Reserving
+ * shadow for genuinely floating elements (modals, popovers, toasts) keeps those
+ * reading as layers rather than as more of the same.
+ */
+@utility card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* The one lifted variant, for a card that is a click target. */
+@utility card-interactive {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+@utility skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--surface-hover) 37%,
+    var(--surface-2) 63%
+  );
+  background-size: 400% 100%;
+  animation: hris-shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+/*
+ * Soft square that holds an icon. Used for nav, feature tiles, and card
+ * headers so every icon in the product sits in the same container.
+ */
+@utility icon-tile {
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-control);
+  background: var(--primary-soft);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Uppercase micro-label used above section content. */
+@utility eyebrow {
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--subtle);
+}
+
+/* Floating panels: dropdowns open from their trigger, sheets rise from below. */
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+@keyframes hris-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@keyframes hris-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-fade-up {
+  animation: hris-fade-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Decorative dotted field used behind the landing hero. */
+@utility dot-grid {
+  background-image: radial-gradient(var(--border-strong) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
