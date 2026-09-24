@@ -12,7 +12,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/hris
 
 jobs:
   build:
@@ -22,6 +21,11 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+
+      - name: Compute lowercase image name
+        # Docker/GHCR image names must be all lowercase; github.repository_owner
+        # keeps the account's original casing (e.g. NurlChl).
+        run: echo "IMAGE_NAME=$(echo '${{ github.repository_owner }}/hris' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -44,4 +48,4 @@ jobs:
       - name: Reminder
         run: |
           echo "::notice::First-ever push of a package defaults to PRIVATE on GHCR, even from a public-facing image."
-          echo "::notice::Go to https://github.com/users/${{ github.repository_owner }}/packages/container/hris/settings and set visibility to Public (one-time)."
+          echo "::notice::Go to https://github.com/users/${{ github.repository_owner }}/packages/container/${{ env.IMAGE_NAME }}/settings (owner path may be lowercase) and set visibility to Public (one-time)."
