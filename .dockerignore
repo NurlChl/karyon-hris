@@ -4,7 +4,7 @@ node_modules
 .next*
 dist
 .env*
-storage
+/storage
 coverage
 *.log
 *.pem

@@ -6,7 +6,7 @@ coverage/
 .env*
 !.env.example
 !.env.compose.example
-storage/
+/storage/
 *.tsbuildinfo
 next-env.d.ts
 *.log

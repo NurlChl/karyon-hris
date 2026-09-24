@@ -1,6 +1,9 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+# `next build` on this app (60+ routes) can exceed Node's default ~2GB heap on
+# constrained CI runners; raise it rather than fail silently with exit code 1.
+ENV NODE_OPTIONS=--max-old-space-size=4096
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 COPY . .
