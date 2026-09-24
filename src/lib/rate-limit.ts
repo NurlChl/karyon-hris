@@ -171,11 +171,29 @@ export function normaliseIp(raw: string | null | undefined): string {
  * The header is trivially forged by anyone talking to the app directly, so
  * trusting it unconditionally lets a single attacker spend everyone else's rate
  * limit — or, worse, write any address they like into the audit log. It is only
- * meaningful when a reverse proxy the operator controls (nginx, Cloudflare,
- * Vercel) overwrites it on the way in, so the operator has to say so with
- * `TRUST_PROXY=1`.
+ * meaningful when a reverse proxy the operator controls (nginx, Traefik,
+ * Cloudflare) appends to it on the way in, so the operator has to say so with
+ * `TRUST_PROXY=1` (one proxy) or the number of proxies in front of the app,
+ * e.g. `TRUST_PROXY=2` for Cloudflare → Traefik.
  */
-const TRUST_PROXY = process.env.TRUST_PROXY === "1" || process.env.TRUST_PROXY === "true";
+const TRUST_PROXY_HOPS = (() => {
+  const value = process.env.TRUST_PROXY?.trim().toLowerCase();
+  if (value === "true") return 1;
+  const hops = Number(value);
+  return Number.isInteger(hops) && hops > 0 && hops <= 10 ? hops : 0;
+})();
+
+/**
+ * Proxies append the address they received the connection from, so only the
+ * right-most entries were written by infrastructure the operator trusts.
+ * Everything to the left was supplied by the client and can be forged to
+ * dodge per-address rate limits.
+ */
+export function forwardedClient(header: string, hops: number): string | null {
+  const entries = header.split(",").map((entry) => entry.trim()).filter(Boolean);
+  if (hops < 1 || entries.length === 0) return null;
+  return entries[Math.max(0, entries.length - hops)] ?? null;
+}
 
 /**
  * Best-effort client IP, normalised for display.
@@ -185,13 +203,10 @@ const TRUST_PROXY = process.env.TRUST_PROXY === "1" || process.env.TRUST_PROXY =
  * `rateLimitKeyForIp`.
  */
 export function clientIp(req: Request): string {
-  if (TRUST_PROXY) {
-    // Left-most entry is the original client; the rest are proxies it passed.
+  if (TRUST_PROXY_HOPS > 0) {
     const fwd = req.headers.get("x-forwarded-for");
-    if (fwd) {
-      const first = fwd.split(",")[0];
-      if (first?.trim()) return normaliseIp(first);
-    }
+    const client = fwd ? forwardedClient(fwd, TRUST_PROXY_HOPS) : null;
+    if (client) return normaliseIp(client);
     const direct = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-real-ip");
     if (direct) return normaliseIp(direct);
   }

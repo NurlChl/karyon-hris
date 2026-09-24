@@ -21,6 +21,7 @@ import Candidate from "@/models/Candidate";
 import Contract from "@/models/Contract";
 import NationalHoliday from "@/models/NationalHoliday";
 import Branch from "@/models/Branch";
+import { dailyAttendance } from "@/lib/hr/attendance-monitor";
 
 /**
  * Everything the admin dashboard needs, in one round trip.
@@ -139,6 +140,8 @@ export const GET = wrapRouteHandler(async (req) => {
   ]);
 
   const month = monthAgg[0] ?? { totalRecords: 0, lateRecords: 0, lateMinutes: 0 };
+  // Same status engine as the Kehadiran page: days off and holidays are not "missing".
+  const daily = await dailyAttendance({ dateKey: todayKey, employeeFilter: branchScope });
   const expectedRecords = headcount * workingDays;
 
   /* Same configured window as the dedicated admin and employee directory. */
@@ -156,7 +159,8 @@ export const GET = wrapRouteHandler(async (req) => {
         lateToday,
         flaggedToday,
         onLeaveToday,
-        absentToday: Math.max(0, headcount - presentToday - onLeaveToday),
+        absentToday: daily.summary.missing + daily.summary.absent,
+        notStartedToday: daily.summary.not_started,
         pendingApprovals,
         openCandidates,
         expiringContracts,

@@ -74,7 +74,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
     const update = () => { applyTheme(next); listeners.forEach((listener) => listener()); };
     if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && document.startViewTransition) {
-      document.startViewTransition(update);
+      // A rapid second toggle or a navigation aborts the transition; the theme is still applied.
+      const transition = document.startViewTransition(update);
+      transition.ready.catch(() => undefined);
+      transition.finished.catch(() => undefined);
     } else { update(); }
   }, []);
 

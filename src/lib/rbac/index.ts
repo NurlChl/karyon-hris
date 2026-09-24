@@ -1,6 +1,7 @@
 import User from "@/models/User";
 import RolePermission from "@/models/RolePermission";
 import { connectToDatabase } from "../db";
+import { currentApiKey } from "../integrations/request-context";
 
 export interface PermissionResult {
   allowed: boolean;
@@ -14,6 +15,16 @@ const DENY: PermissionResult = { allowed: false, scope: "self" };
 interface CacheEntry {
   roleName: string;
   permissions: Map<string, { actions: string[]; scope: string }>;
+}
+
+/**
+ * Whether the API key of the current request (if any) was granted
+ * `module:action`. Requests without a key are unaffected.
+ */
+export function apiKeyAllows(module: string, action: string): boolean {
+  const key = currentApiKey();
+  if (!key) return true;
+  return key.scopes.includes(`${module}:${action}`) || (module === "employees" && action === "read" && key.scopes.includes("employees.read"));
 }
 
 /** Kept for existing callers; live grants no longer require invalidation. */
@@ -53,6 +64,10 @@ export async function checkPermission(
   module: string,
   action: string
 ): Promise<PermissionResult> {
+  // An API key narrows what its creator may do in this request. Checks about
+  // other users (e.g. routing an approval to an approver) are not narrowed.
+  const key = currentApiKey();
+  if (key && key.userId === userId && !apiKeyAllows(module, action)) return DENY;
   try {
     // Read live grants: a process-local TTL cannot reliably revoke permissions
     // across multiple instances after an administrator changes a role.

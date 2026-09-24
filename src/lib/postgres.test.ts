@@ -9,7 +9,6 @@ import { seedDemo } from "../scripts/seed-demo";
 import Employee from "../models/Employee";
 import User from "../models/User";
 import Attendance from "../models/Attendance";
-import { calculatePayroll } from "./hr/payroll-calc";
 import { getBirthdayDirectory } from "./hr/birthdays-server";
 import { resolveSchedule } from "./hr/calendar";
 
@@ -31,8 +30,6 @@ test("every HRIS model creates a relational PostgreSQL schema", async () => {
     assert.equal(await Employee.countDocuments({employeeId:/^DEMO-\d{3}$/}),200);
     assert.equal(JSON.stringify(await User.findOne({email:"admin@hris.com"}).lean()),adminBefore);
     const demo=await Employee.findOne({employeeId:"DEMO-001"});
-    const payroll=await calculatePayroll(String(demo._id),"2026-08");
-    assert.ok(Number.isFinite(payroll.netSalary));
     assert.equal((await resolveSchedule(String(demo._id),"2026-08-03")).clockIn,"09:00");
     await Employee.updateOne({_id:demo._id},{$set:{birthDate:new Date("1995-09-22T00:00:00+07:00")}});
     assert.equal((await getBirthdayDirectory()).showBirthYearAndAge,false);

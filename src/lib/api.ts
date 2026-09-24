@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { isDbUnreachable } from "@/lib/db";
+import { runWithRequestContext } from "@/lib/integrations/request-context";
 
 export interface ApiMeta {
   page?: number;
@@ -79,7 +80,7 @@ export type RouteContext<P = Record<string, string>> = { params: Promise<P> };
 export function wrapRouteHandler<C = RouteContext>(
   handler: (req: Request, context: C) => Promise<NextResponse | Response>
 ) {
-  return async (req: Request, context: C) => {
+  return (req: Request, context: C) => runWithRequestContext(async () => {
     try {
       // Browser state-changing requests must originate from this host. JSON
       // bodies and SameSite cookies reduce classic CSRF, but neither protects
@@ -157,5 +158,5 @@ export function wrapRouteHandler<C = RouteContext>(
         500
       );
     }
-  };
+  });
 }

@@ -1,16 +1,27 @@
 # Build from this repository. Dokploy Git deployment can use this file.
+# PostgreSQL 18 stores data under /var/lib/postgresql/18/docker. The volume name
+# is new on purpose: a PostgreSQL 17 volume is never reused by the 18 image.
+# Upgrading an existing 17 installation: see docs in README ("Upgrade PostgreSQL 17 ke 18").
 services:
   postgres:
-    image: postgres:17-bookworm
+    image: ${POSTGRES_IMAGE:-postgres:18-trixie}
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${HRIS_DB_NAME:-hris}
-      POSTGRES_USER: ${HRIS_DB_USER:-hris}
-      POSTGRES_PASSWORD: ${HRIS_DB_PASSWORD:?Set database password}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Set POSTGRES_ADMIN_PASSWORD}
+      POSTGRES_DB: postgres
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      APP_DB_NAME: ${HRIS_DB_NAME:-hris}
+      APP_DB_USER: ${HRIS_DB_USER:-hris}
+      APP_DB_PASSWORD: ${HRIS_DB_PASSWORD:?Set HRIS_DB_PASSWORD}
+    configs:
+      - source: app_db_role
+        target: /docker-entrypoint-initdb.d/10-app-role.sh
+        mode: 0555
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres18_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d \"$$APP_DB_NAME\""]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -19,12 +30,15 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
+      NODE_ENV: production
       HRIS_DATABASE_URL: ""
       HRIS_DB_HOST: postgres
       HRIS_DB_PORT: "5432"
       HRIS_DB_SSL: disable
       AUTH_TRUST_HOST: "true"
       LOCAL_STORAGE_PATH: /app/storage
+      # env_file loads every key; the database superuser password stays in the postgres service only.
+      POSTGRES_ADMIN_PASSWORD: ""
     depends_on:
       postgres:
         condition: service_healthy
@@ -32,7 +46,22 @@ services:
       - "${BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-3000}:3000"
     volumes:
       - uploads:/app/storage
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 volumes:
-  postgres_data:
+  postgres18_data:
   uploads:
-
+configs:
+  # Runs once on an empty data volume: the application connects as a
+  # non-superuser that owns only its own database.
+  app_db_role:
+    content: |
+      #!/bin/sh
+      psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "$$POSTGRES_DB" \
+        -v app_user="$$APP_DB_USER" -v app_password="$$APP_DB_PASSWORD" -v app_db="$$APP_DB_NAME" <<'SQL'
+      CREATE ROLE :"app_user" LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION PASSWORD :'app_password';
+      CREATE DATABASE :"app_db" OWNER :"app_user";
+      REVOKE ALL ON DATABASE :"app_db" FROM PUBLIC;
+      SQL

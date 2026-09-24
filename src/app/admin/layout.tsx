@@ -8,7 +8,10 @@ import {
   Cake,
   CalendarHeart,
   CalendarOff,
+  ClipboardCheck,
   FileSignature,
+  FileSpreadsheet,
+  KeyRound,
   LayoutDashboard,
   Megaphone,
   MessageSquareWarning,
@@ -48,6 +51,12 @@ const sections: NavSection[] = [
   {
     label: "Operasional HR",
     items: [
+      {
+        name: "Kehadiran",
+        href: "/admin/attendance",
+        icon: ClipboardCheck,
+        roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI", "SPV", "GA"],
+      },
       {
         name: "Data Karyawan",
         href: "/admin/employees",
@@ -134,6 +143,8 @@ const sections: NavSection[] = [
         icon: ScrollText,
         roles: ["SUPERADMIN", "AUDIT", "DIREKSI"],
       },
+      { name: "Ekspor & Impor", href: "/admin/data", icon: FileSpreadsheet, roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI", "GA", "SPV"] },
+      { name: "Integrasi API", href: "/admin/integrations", icon: KeyRound, roles: ["SUPERADMIN", "HRD"] },
       { name: "Lisensi & Paket", href: "/admin/license", icon: ShieldCheck, roles: ["SUPERADMIN", "DIREKSI"] },
       { name: "Portal Karyawan", href: "/portal/attendance", icon: SquareArrowOutUpRight },
       { name: "Dokumentasi", href: "/docs", icon: BookOpen },

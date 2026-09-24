@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { wrapRouteHandler, apiSuccess } from "@/lib/api";
-import { requireUser, requirePermission, parseBody, NotFound } from "@/lib/guard";
+import { requireUser, requirePermission, parseBody, NotFound, Forbidden } from "@/lib/guard";
 import { logActivity } from "@/lib/audit/logger";
 import { getSettings } from "@/lib/settings";
 import Branch from "@/models/Branch";
 import Employee from "@/models/Employee";
-import { requireProFeature } from "@/lib/licensing/server";
+
 
 const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam harus HH:MM");
 
@@ -91,7 +91,7 @@ export const POST = wrapRouteHandler(async (req) => {
     );
   }
 
-  if (await Branch.exists({})) await requireProFeature("organization.multi_branch");
+  if (await Branch.exists({})) throw Forbidden("Cabang tambahan memerlukan distribusi HRIS Pro.");
 
   const branch = await Branch.create(payload);
 

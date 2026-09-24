@@ -29,6 +29,50 @@ export interface DocChapter {
 export { ROLE_LABELS } from "./roles";
 
 export const CHAPTERS: DocChapter[] = [
+  {
+    id: "pembaruan-30", title: "Pembaruan 3.0: Kehadiran, Ekspor/Impor, Lisensi", sections: [
+      { id: "monitor-kehadiran", title: "Monitor kehadiran harian", summary: "Siapa yang hadir, terlambat, cuti, belum absen, atau alpha, per tanggal.", audience: ["SPV", "HRD", "AUDIT", "DIREKSI", "SUPERADMIN"], blocks: [
+        { type: "p", text: "Buka menu Kehadiran di panel admin. Halaman ini menghitung status setiap karyawan aktif pada tanggal terpilih dari jadwal, presensi, cuti/izin yang disetujui, hari libur, dan tukar libur. Atasan hanya melihat timnya; HRD dan peran lain mengikuti cakupan akses masing-masing." },
+        { type: "table", head: ["Status", "Artinya"], rows: [
+          ["Hadir", "Sudah absen masuk tepat waktu."],
+          ["Terlambat", "Sudah absen masuk melewati jam masuk + toleransi."],
+          ["Izin/Cuti", "Ada cuti atau izin yang disetujui pada tanggal itu."],
+          ["Libur / Libur nasional", "Hari libur jadwal, tukar libur, atau libur nasional."],
+          ["Belum mulai", "Jam masuk belum tiba (hari ini)."],
+          ["Belum absen", "Jam masuk + toleransi sudah lewat, belum ada absen masuk. Masih bisa absen hari ini."],
+          ["Alpha", "Hari kerja yang sudah lewat tanpa absen masuk, tanpa cuti/izin."],
+        ] },
+        { type: "steps", items: ["Klik kartu ringkasan (mis. Belum absen) untuk memfilter daftar. Gunakan pencarian nama/NIP dan pilihan cabang.", "Ganti tanggal untuk melihat hari sebelumnya. Kolom Lupa absen pulang menandai karyawan yang absen masuk tetapi belum absen pulang.", "Tombol Ingatkan yang belum absen mengirim notifikasi ke karyawan berstatus Belum absen (maks. 5 kali per jam, tercatat di audit).", "Unduh Excel atau CSV untuk tanggal dan filter yang sama."] },
+        { type: "note", tone: "info", text: "Kartu Belum absen / alpha di dashboard utama memakai perhitungan yang sama. Klik Lihat detail per karyawan untuk membuka halaman ini." },
+      ] },
+      { id: "notifikasi-kehadiran", title: "Notifikasi kehadiran otomatis", summary: "Pengingat absen untuk karyawan, ringkasan untuk atasan dan HR.", audience: [], blocks: [
+        { type: "p", text: "Server memeriksa kehadiran setiap 5 menit dan mengirim notifikasi ke ikon lonceng di aplikasi (dan email bila pengguna tidak menonaktifkannya). Setiap jenis pengingat dikirim paling banyak sekali per orang per hari." },
+        { type: "list", items: ["Karyawan: pengingat belum absen masuk setelah jam masuk + toleransi + X menit, dan pengingat belum absen pulang setelah jam pulang + Y menit.", "Atasan: ringkasan harian jumlah bawahan yang belum absen, mulai jam ringkasan.", "HR / peran dengan akses kehadiran seluruh perusahaan: ringkasan perusahaan dan daftar alpha kemarin.", "Karyawan yang alpha kemarin menerima pemberitahuan agar dapat mengajukan koreksi bila ada kekeliruan."] },
+        { type: "note", tone: "info", title: "Pengaturan", text: "Superadmin mengatur di Pengaturan → Presensi: Pantau & ingatkan kehadiran otomatis (aktif/nonaktif), menit pengingat absen masuk dan pulang, serta jam ringkasan (WIB)." },
+      ] },
+      { id: "ekspor-data", title: "Ekspor data ke Excel atau CSV", summary: "Karyawan, presensi, cuti, slip gaji, KPI, kontrak, inventaris, pelamar.", audience: ["SPV", "HRD", "AUDIT", "DIREKSI", "SUPERADMIN"], blocks: [
+        { type: "steps", items: ["Buka menu Ekspor & Impor, tab Ekspor.", "Pilih data, lalu periode (bulan), tanggal, atau periode KPI bila diminta.", "Pilih format Excel (.xlsx) atau CSV, lalu Unduh."] },
+        { type: "list", items: ["Hanya data yang boleh Anda lihat yang ikut terekspor: atasan hanya timnya, HRD sesuai cakupan cabang/perusahaan.", "Peran Anda perlu aksi Ekspor pada modul terkait (Pengaturan → Peran & Hak Akses).", "NPWP dan nomor rekening lengkap hanya untuk cakupan seluruh perusahaan; selain itu disamarkan.", "Setiap ekspor tercatat di audit: siapa, data apa, berapa baris. Maksimal 20.000 baris per ekspor.", "Isi sel yang diawali =, +, - atau @ dinetralkan agar tidak dijalankan sebagai rumus di Excel."] },
+      ] },
+      { id: "impor-data", title: "Impor data dari CSV", summary: "Cabang, divisi, jabatan, dan karyawan: pratinjau dulu, baru disimpan.", audience: ["HRD", "SUPERADMIN"], blocks: [
+        { type: "steps", items: ["Buka Ekspor & Impor, tab Impor, pilih jenis data, lalu unduh template CSV. Urutan impor yang disarankan: cabang → divisi → jabatan → karyawan.", "Isi template di Excel/Google Sheets dan simpan sebagai CSV (pemisah koma atau titik koma). Maksimal 1 MB dan 5.000 baris.", "Unggah berkas. Sistem menampilkan pratinjau: baris baru, baris yang diperbarui, dan baris bermasalah beserta alasannya. Belum ada data yang disimpan.", "Perbaiki baris bermasalah atau lanjutkan. Klik Simpan impor: semua baris valid disimpan dalam satu transaksi (semua atau tidak sama sekali).", "Untuk karyawan baru dengan email, akun dibuat otomatis. Unduh berkas kata sandi awal saat itu juga; berkas hanya tersedia sekali."] },
+        { type: "list", items: ["Karyawan dicocokkan dengan NIP: NIP yang ada diperbarui, NIP kosong dibuatkan otomatis.", "Nilai yang disamarkan (mis. ****1234) dilewati sehingga data asli tidak tertimpa.", "Atasan (NIP atasan) harus sudah ada. Community hanya mengizinkan satu cabang.", "Setiap impor tercatat di audit dengan jumlah baris dibuat dan diperbarui."] },
+      ] },
+      { id: "reset-sandi-karyawan", title: "Mengganti kata sandi karyawan", summary: "HRD atau Superadmin mengatur ulang kata sandi karyawan yang lupa.", audience: ["HRD", "SUPERADMIN"], blocks: [
+        { type: "steps", items: ["Buka Karyawan, pilih karyawan, lalu Ubah.", "Isi Kata Sandi Baru (minimal 8 karakter) dan simpan.", "Sampaikan kata sandi secara langsung atau lewat kanal internal yang aman, lalu minta karyawan menggantinya setelah login."] },
+        { type: "note", tone: "info", text: "Kemampuan ini mengikuti izin Ubah pada modul Karyawan di Peran & Hak Akses dan cakupan peran Anda. Setiap penggantian tercatat di audit sebagai RESET_EMPLOYEE_PASSWORD tanpa menyimpan kata sandinya." },
+      ] },
+      { id: "lisensi-pro", title: "Aktivasi dan upgrade ke Pro", summary: "License key, perintah upgrade sekali pakai, masa tenggang.", audience: ["SUPERADMIN"], blocks: [
+        { type: "steps", items: ["Beli Pro di website lisensi dan salin license key dari menu Langganan.", "Buka Lisensi & Paket, tempel license key, klik Aktifkan. Lisensi terikat ke alamat website HRIS ini (NEXTAUTH_URL).", "Jika edisi aplikasi masih Community, klik Buat perintah upgrade dan jalankan perintah yang muncul di folder instalasi server. Kode berlaku 15 menit dan hanya sekali pakai.", "Setelah installer selesai, muat ulang halaman: edisi berubah menjadi Pro dan fitur berlisensi aktif."] },
+        { type: "list", items: ["Lease lisensi diperpanjang otomatis oleh aplikasi. Tombol Perbarui status memaksa perpanjangan saat itu juga.", "Jika server lisensi tidak dapat dihubungi, fitur Pro tetap aktif selama masa tenggang (default 14 hari).", "Saat lisensi berakhir, fitur Pro terkunci tetapi data tidak dihapus dan tetap dapat diekspor.", "License key dan secret aktivasi disimpan terenkripsi dan tidak pernah ditampilkan kembali."] },
+      ] },
+      { id: "api-key", title: "API key untuk integrasi (Pro)", summary: "Membuat, membatasi, dan mencabut akses API pihak ketiga.", audience: ["SUPERADMIN"], blocks: [
+        { type: "steps", items: ["Buka Integrasi API, klik Buat API key, beri nama dan pilih scope seminimal mungkin (mis. employees:read, attendance:read).", "Salin key yang diawali hris_. Key hanya ditampilkan sekali; simpan di secret manager sistem tujuan.", "Panggil API dengan header Authorization: Bearer hris_…. Dokumentasi interaktif ada di /api-docs.", "Cabut key yang tidak dipakai. Aktivitas terakhir tiap key terlihat di daftar."] },
+        { type: "code", text: "curl -H \"Authorization: Bearer hris_xxxxxxxx\" https://hr.perusahaan.co.id/api/v1/employees?limit=20" },
+        { type: "note", tone: "warning", text: "API key tidak dapat mengubah pengaturan, peran, atau membuat key lain. Fitur yang memerlukan akun karyawan (absen, profil saya) tetap hanya lewat login aplikasi." },
+      ] },
+    ],
+  },
   { id: "ulang-tahun", title: "Ulang Tahun Karyawan", sections: [{ id: "direktori-ulang-tahun", title: "Melihat ulang tahun rekan kerja", summary: "Menu khusus, ringkasan portal, dan periode fleksibel dari pengaturan perusahaan.", audience: [], blocks: [
     { type: "p", text: "Buka menu Ulang Tahun di panel admin atau portal karyawan. Ringkasan juga tersedia di overview admin dan halaman Presensi Mandiri. Daftar hanya memuat karyawan aktif dengan tanggal lahir terisi." },
     { type: "list", items: ["Pengelola mengatur periode melalui Pengaturan → Identitas Perusahaan → Periode daftar ulang tahun.", "Bulan ini: dari tanggal 1 sampai akhir bulan WIB.", "Beberapa bulan ke depan: isi 2 untuk hari ini sampai tanggal yang sama dua bulan lagi, disesuaikan bila akhir bulan.", "Rentang hari: sebelum 0 / sesudah 30 untuk 30 hari mendatang; sebelum 15 / sesudah 15 untuk 15 hari terakhir dan 15 hari berikutnya. Hari ini dan kedua batas ikut ditampilkan.", "Aktifkan Tampilkan tahun lahir dan usia jika kebijakan perusahaan memperbolehkan seluruh pengguna direktori melihatnya. Opsi ini nonaktif secara default.", "Ulang tahun 29 Februari ditampilkan 28 Februari pada tahun nonkabisat, tanpa mengubah tanggal lahir asli. Pengaturan ini tidak mengubah jadwal notifikasi otomatis ulang tahun."] },
@@ -1449,23 +1493,23 @@ export const CHAPTERS: DocChapter[] = [
       {
         id: "laporan",
         title: "Mengekspor laporan",
-        summary: "Mengunduh data presensi, cuti, payroll, dan karyawan.",
+        summary: "Mengunduh data dari menu Ekspor & Impor atau lewat URL.",
         audience: ["HRD", "AUDIT", "DIREKSI", "SUPERADMIN"],
         blocks: [
           {
             type: "p",
             text:
-              "Laporan diekspor sebagai berkas CSV yang dapat langsung dibuka di Excel maupun Google Sheets. Setiap ekspor tercatat di log audit lengkap dengan siapa yang mengunduh, kapan, dan berapa baris.",
+              "Cara termudah: menu Ekspor & Impor (lihat bagian Ekspor data). Laporan juga dapat diunduh langsung lewat URL sebagai Excel (.xlsx) atau CSV. Setiap ekspor tercatat di log audit lengkap dengan siapa yang mengunduh, kapan, dan berapa baris.",
           },
           {
             type: "code",
-            text: "/api/v1/reports/export?dataset=attendance&period=2026-07",
+            text: "/api/v1/reports/export?dataset=attendance&period=2026-07&format=xlsx",
           },
           {
             type: "list",
             items: [
-              "dataset: attendance, leave, payroll, employees, atau corrections",
-              "period: bulan dalam format YYYY-MM",
+              "dataset: employees, attendance, attendance_daily, corrections, leave, payroll, kpi, contracts, inventory, atau candidates",
+              "period: bulan YYYY-MM (presensi, koreksi, cuti, payroll); date: YYYY-MM-DD untuk attendance_daily; format: xlsx atau csv",
               "Peran Anda harus memiliki aksi Ekspor pada modul terkait.",
             ],
           },
@@ -1553,9 +1597,13 @@ export const CHAPTERS: DocChapter[] = [
       {
         id: "instalasi",
         title: "Menjalankan sistem",
-        summary: "Perintah dasar untuk pengembangan dan penyiapan awal.",
+        summary: "Instalasi produksi dengan installer, dan perintah untuk pengembangan.",
         audience: ["SUPERADMIN"],
         blocks: [
+          {
+            type: "p",
+            text: "Produksi: jalankan installer dari website lisensi (curl -fsSL https://WEBSITE-LISENSI/install.sh | sh). Installer membuat .env dengan kunci acak, menyalakan PostgreSQL 18 dan aplikasi lewat Docker, lalu menampilkan akun Superadmin satu kali. Jalankan ulang perintah yang sama di folder instalasi untuk update. Untuk pengembangan lokal:",
+          },
           {
             type: "code",
             text:

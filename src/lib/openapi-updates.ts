@@ -6,12 +6,14 @@ const id = q("id", "ObjectId record", true);
 const operation = (method: ApiEndpoint["method"], path: string, summary: string, auth: string, extra: Partial<ApiEndpoint> = {}): ApiEndpoint => ({ method, path, summary, description: summary + ". Validasi dan otorisasi tetap dijalankan server.", auth, ...extra });
 export const API_UPDATES: ApiGroup[] = [
   { name: "Lisensi", description: "Status paket dan entitlement instalasi self-hosted.", endpoints: [
-    operation("GET", "/license", "Status lisensi dan fitur aktif", "Sesi pengguna aktif", { description: "Mengambil status Community/Pro dari HRIS Agent. Tidak mengirim license key atau activation secret." }),
+    operation("GET", "/license", "Status lisensi, aktivasi, dan fitur aktif", "Sesi pengguna aktif", { description: "Entitlement terverifikasi (Pro) dan ringkasan aktivasi (paket, masa lease). Tidak pernah mengirim license key atau activation secret." }),
+    operation("POST", "/license", "Aktivasi lisensi, kode upgrade Pro, atau perbarui lease", "Superadmin", { description: "activate: ikat license key ke instalasi dan alamat website ini. upgrade-code: kode sekali pakai 15 menit untuk install.sh --upgrade-code. refresh: minta lease baru. Maks 10 permintaan per 10 menit.", body: [f("action", "string", "activate | upgrade-code | refresh", true), f("licenseKey", "string", "Wajib untuk activate")] }),
+    operation("GET", "/license/lease", "Lease bertanda tangan untuk agent lifecycle (internal)", "Bearer HRIS_AGENT_TOKEN", { description: "Hanya untuk agent di jaringan Docker. Agent memverifikasi tanda tangan sendiri; endpoint ini tidak memberi fitur." }),
     operation("GET", "/health", "Health check aplikasi dan database", "Publik", { description: "Digunakan container health check dan rollback otomatis; hanya mengembalikan status layanan." }),
   ] },
   { name: "Integrasi Pro", description: "Webhook keluar bertanda tangan. Tujuan wajib HTTPS publik dan redirect ditolak untuk mengurangi SSRF.", endpoints: [
-    operation("GET", "/integrations/api-keys", "Daftar API key tanpa secret", "Pro integration.api + settings:read"),
-    operation("POST", "/integrations/api-keys", "Terbitkan API key", "Pro integration.api + settings:write", { body: [f("name", "string", "Nama integrasi", true), f("scopes", "array", "Saat ini: employees.read", true)] }),
+    operation("GET", "/integrations/api-keys", "Daftar API key tanpa secret", "Pro integration.api + settings:read (sesi login saja)", { params: [q("view", "scopes: daftar scope yang boleh diberikan pemanggil")] }),
+    operation("POST", "/integrations/api-keys", "Terbitkan API key", "Pro integration.api + settings:write", { body: [f("name", "string", "Nama integrasi", true), f("scopes", "array", "modul:aksi (mis. employees:read, leave:approve) atau employees.read; tidak boleh melebihi izin pembuat, modul settings tidak tersedia", true)] }),
     operation("PATCH", "/integrations/api-keys", "Aktif/nonaktifkan API key", "Pro integration.api + settings:write", { body: [f("id", "string", "ObjectId", true), f("enabled", "boolean", "Status baru", true)] }),
     operation("DELETE", "/integrations/api-keys", "Cabut API key", "Pro integration.api + settings:delete", { params: [id] }),
     operation("GET", "/integrations/employees", "Direktori karyawan minimal untuk integrasi", "Bearer API key dengan scope employees.read", { params: pages, description: "Tidak mengirim NIK, bank, payroll, tanggal lahir, atau data biometrik." }),

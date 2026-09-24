@@ -44,3 +44,12 @@ test("same-origin and server-to-server mutations remain available", async () => 
   assert.equal(sameOrigin.status, 201);
   assert.equal(serverToServer.status, 201);
 });
+
+test("forwarded client address is taken from the trusted right-most hops, not the forgeable left", async () => {
+  const { forwardedClient } = await import("./rate-limit");
+  assert.equal(forwardedClient("6.6.6.6, 203.0.113.9", 1), "203.0.113.9");
+  assert.equal(forwardedClient("6.6.6.6, 203.0.113.9, 172.16.0.2", 2), "203.0.113.9");
+  assert.equal(forwardedClient("203.0.113.9", 3), "203.0.113.9");
+  assert.equal(forwardedClient(" , ", 1), null);
+  assert.equal(forwardedClient("203.0.113.9", 0), null);
+});

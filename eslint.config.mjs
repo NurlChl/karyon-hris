@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
 
   {
     settings: {
+      // Explicit version: eslint-plugin-react auto-detection uses an API removed in ESLint 10.
+      react: { version: "19.3" },
       next: {
         rootDir: ["."],
       },

@@ -141,6 +141,32 @@ const BASE_GROUPS: ApiGroup[] = [
       },
       {
         method: "GET",
+        path: "/attendance/daily",
+        summary: "Pemantauan kehadiran harian",
+        description:
+          "Status setiap karyawan pada satu hari: hadir, terlambat, izin/cuti, libur, libur nasional, belum mulai, belum absen, atau alpha, beserta jadwal, jam masuk/pulang dan penanda belum absen pulang. Ringkasan dihitung atas seluruh lingkup sebelum filter.",
+        auth: "attendance:read (lingkup menentukan luas data)",
+        params: [
+          { name: "date", in: "query", description: "YYYY-MM-DD, default hari ini (WIB). Maks 1 tahun ke belakang, 31 hari ke depan." },
+          { name: "status", in: "query", description: "present | late | leave | off | holiday | not_started | missing | absent" },
+          { name: "branchId", in: "query", description: "Filter cabang." },
+          { name: "divisionId", in: "query", description: "Filter divisi." },
+          { name: "q", in: "query", description: "Cari nama atau NIP." },
+        ],
+      },
+      {
+        method: "POST",
+        path: "/attendance/daily",
+        summary: "Kirim pengingat ke karyawan yang belum absen",
+        description: "Mengirim notifikasi ke karyawan dalam lingkup yang berstatus belum absen hari ini. Maksimal satu pengingat manual per karyawan per hari; dibatasi 5 permintaan per jam.",
+        auth: "attendance:write",
+        body: [
+          { name: "action", type: "string", required: true, description: "remind" },
+          { name: "date", type: "string", description: "Harus hari ini bila diisi." },
+        ],
+      },
+      {
+        method: "GET",
         path: "/attendance/correction",
         summary: "Daftar pengajuan koreksi absen",
         description: "Mengembalikan pengajuan koreksi beserta sisa kuota bulan berjalan.",
@@ -982,13 +1008,36 @@ const BASE_GROUPS: ApiGroup[] = [
       },
       {
         method: "GET",
+        path: "/imports",
+        summary: "Unduh template impor CSV",
+        description: "Header kolom (tanda * = wajib) dan satu baris contoh. Urutan impor untuk instalasi baru: branches → divisions → positions → employees.",
+        auth: "{module}:write lingkup seluruh perusahaan (settings untuk master data, employees untuk karyawan)",
+        params: [{ name: "dataset", in: "query", required: true, description: "branches | divisions | positions | employees" }],
+      },
+      {
+        method: "POST",
+        path: "/imports",
+        summary: "Pratinjau atau jalankan impor CSV",
+        description: "commit=false memvalidasi setiap baris tanpa menulis (pratinjau). commit=true memvalidasi ulang berkas yang sama lalu menyimpan semua baris dalam satu transaksi; bila ada satu baris bermasalah, tidak ada data yang diubah. CSV koma atau titik koma, UTF-8, maks 1 MB / 5.000 baris. Karyawan baru mendapat NIP otomatis; akun login STAFF dibuat bila diminta, kata sandi acak hanya dikembalikan sekali.",
+        auth: "{module}:write lingkup seluruh perusahaan",
+        body: [
+          { name: "dataset", type: "string", required: true, description: "branches | divisions | positions | employees" },
+          { name: "csv", type: "string", required: true, description: "Isi berkas CSV (teks)." },
+          { name: "commit", type: "boolean", description: "false = pratinjau (default), true = simpan." },
+        ],
+      },
+      {
+        method: "GET",
         path: "/reports/export",
-        summary: "Ekspor laporan CSV",
-        description: "Setiap ekspor dicatat di log audit.",
-        auth: "{module}:export sesuai dataset",
+        summary: "Ekspor data ke Excel (.xlsx) atau CSV",
+        description: "Mengikuti lingkup izin pemanggil; NIK/NPWP/rekening lengkap hanya untuk izin seluruh perusahaan. Inventaris dan pelamar memerlukan izin seluruh perusahaan. Maksimal 20.000 baris, 30 ekspor per 10 menit, setiap ekspor dicatat di log audit. CSV memakai UTF-8 BOM dan menetralkan formula (=, +, -, @).",
+        auth: "{module}:export sesuai dataset (employees, attendance, leave, payroll, kpi, contracts, inventory, recruitment)",
         params: [
-          { name: "dataset", in: "query", required: true, description: "attendance | leave | payroll | employees | corrections" },
-          { name: "period", in: "query", required: true, description: "Periode YYYY-MM." },
+          { name: "dataset", in: "query", required: true, description: "employees | attendance | attendance_daily | corrections | leave | payroll | kpi | contracts | inventory | candidates" },
+          { name: "format", in: "query", description: "xlsx (default) | csv" },
+          { name: "period", in: "query", description: "YYYY-MM untuk presensi, koreksi, izin, slip gaji; periode KPI (YYYY-MM, YYYY-Q1, YYYY-H1, YYYY). Default bulan ini." },
+          { name: "date", in: "query", description: "YYYY-MM-DD untuk attendance_daily. Default hari ini." },
+          { name: "branchId", in: "query", description: "Filter cabang untuk attendance_daily." },
         ],
       },
       {
@@ -1039,9 +1088,9 @@ const BASE_GROUPS: ApiGroup[] = [
         path: "/openapi",
         summary: "Dokumen OpenAPI",
         description: "Spesifikasi OpenAPI 3.1, atau daftar grup untuk halaman referensi bila format=groups.",
-        auth: "Superadmin",
+        auth: "Pro integration.api; sesi dengan settings:read atau Bearer API key apa pun yang aktif",
         params: [{ name: "format", in: "query", description: "groups untuk format halaman referensi." }],
-        errors: [{ code: "401/403", when: "Belum login atau bukan Superadmin." }],
+        errors: [{ code: "401/403", when: "Belum login, API key tidak valid, atau instalasi tanpa lisensi Pro." }],
       },
       {
         method: "GET",
@@ -1490,6 +1539,12 @@ export function buildOpenApiSpec() {
         secureSessionCookie: { type: "apiKey", in: "cookie", name: "__Secure-authjs.session-token" },
         publicApiKey: { type: "apiKey", in: "header", name: "x-api-key" },
         cronSecret: { type: "apiKey", in: "header", name: "x-cron-secret" },
+        hrisApiKey: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "hris_…",
+          description: "HRIS Pro. API key dari Admin → Integrasi API. Berlaku pada endpoint yang memeriksa izin modul (scope modul:aksi) dan tidak melebihi izin pembuatnya; endpoint pribadi dan pengaturan sistem menolak API key.",
+        },
       },
     },
   };
@@ -1505,8 +1560,12 @@ function operationSecurity(ep: ApiEndpoint) {
   if (ep.path === "/public/candidates") return [{ publicApiKey: [] }, {}];
   if (ep.path.startsWith("/public/") || ["/auth/forgot-password", "/auth/reset-password"].includes(ep.path) || ep.path === "/settings/categories" && ep.method === "GET") return [];
   if (ep.path === "/storage/secure") return [{ sessionCookie: [] }, { secureSessionCookie: [] }, {}];
-  return [{ sessionCookie: [] }, { secureSessionCookie: [] }];
+  if (ep.path === "/integrations/employees") return [{ hrisApiKey: [] }];
+  const session = [{ sessionCookie: [] }, { secureSessionCookie: [] }];
+  return MODULE_SCOPED_AUTH.test(ep.auth) ? [...session, { hrisApiKey: [] }] : session;
 }
+// Endpoints documented with a module permission (not settings) can be called with a scoped API key.
+const MODULE_SCOPED_AUTH = /\b(attendance|employees|leave|holiday_swap|payroll|recruitment|kpi|contracts|inventory|complaint|reports|audit|discipline)\s*(?::|×)\s*(read|write|delete|approve|export)\b/;
 function specialResponses(ep: ApiEndpoint): Record<string, unknown> {
   if (ep.path === "/storage/secure") return { "200": { description: "Berkas privat; content-type mengikuti file yang disimpan", content: { "application/octet-stream": { schema: { type: "string", format: "binary" } } } } };
   if (ep.path === "/reports/export") return { "200": { description: "Unduhan CSV", content: { "text/csv": { schema: { type: "string" } } } } };

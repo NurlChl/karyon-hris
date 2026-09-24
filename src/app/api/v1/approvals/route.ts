@@ -8,7 +8,6 @@ import { requireUser, parseBody, pagination, BadRequest, NotFound, Forbidden } f
 import { logActivity } from "@/lib/audit/logger";
 import { decide, type RefType, REF_TYPE_LABEL } from "@/lib/approval/engine";
 import { formatDate, wibStartOfDay, wibTimeOnDay } from "@/lib/time";
-import { storageProvider } from "@/lib/storage";
 import ApprovalInstance from "@/models/ApprovalInstance";
 import LeaveRequest from "@/models/LeaveRequest";
 import LeaveType from "@/models/LeaveType";
@@ -16,8 +15,6 @@ import LeaveBalance from "@/models/LeaveBalance";
 import Attendance from "@/models/Attendance";
 import AttendanceCorrection from "@/models/AttendanceCorrection";
 import HolidaySwapRequest from "@/models/HolidaySwapRequest";
-import FaceChangeRequest from "@/models/FaceChangeRequest";
-import FaceProfile from "@/models/FaceProfile";
 import Employee from "@/models/Employee";
 import { CORRECTION_REASON_LABELS } from "@/lib/hr/labels";
 
@@ -56,6 +53,7 @@ export const GET = wrapRouteHandler(async (req) => {
   }
 
   const { page, limit, skip } = pagination(req, 25, 100);
+  filter.refType = { $ne: "face_change" };
   const total = await ApprovalInstance.countDocuments(filter);
   const instances = await ApprovalInstance.find(filter)
     .sort({ updatedAt: -1 })
@@ -97,13 +95,7 @@ export const GET = wrapRouteHandler(async (req) => {
           .populate("employeeId", "name employeeId divisionId branchId")
           .lean()
       : [],
-    byType.face_change?.length
-      ? FaceChangeRequest.find({ _id: { $in: byType.face_change } })
-          // The encrypted descriptors never leave the server.
-          .select("-descriptors")
-          .populate("employeeId", "name employeeId divisionId branchId")
-          .lean()
-      : [],
+    [], // Biometric requests belong to the Pro module.
   ]);
 
   const index = new Map<string, Record<string, unknown>>();
@@ -176,40 +168,7 @@ async function describe(refType: RefType, doc: Record<string, unknown>) {
       evidenceUrl: await attachmentRefHref(evidence),
     };
   }
-  if (refType === "face_change") {
-    const employeeRef = doc.employeeId as { _id?: RecordId } | undefined;
-    const current = employeeRef?._id
-      ? await FaceProfile.findOne({ employeeId: employeeRef._id })
-          .select("referencePhoto createdAt")
-          .lean<{ referencePhoto: string; createdAt: Date } | null>()
-      : null;
-    const distance = doc.distanceToCurrent as number | null;
-
-    // Signed links are the only way a supervisor reaches these photos: the
-    // storage route refuses face photos to a plain supervisor session, and the
-    // link is minted here only for someone already allowed to see this request.
-    return {
-      title: "Penggantian wajah presensi",
-      period: current ? `Wajah terdaftar sejak ${formatDate(current.createdAt)}` : "Belum ada wajah terdaftar",
-      duration: `${doc.sampleCount} foto baru`,
-      reason: (doc.reason as string) || "-",
-      evidenceUrl: "",
-      facePhotos: {
-        current: current ? await storageProvider.getSignedUrl(current.referencePhoto, 600) : "",
-        proposed: await storageProvider.getSignedUrl(doc.referencePhoto as string, 600),
-      },
-      // A hint for the approver, not a verdict: the system cannot know whether a
-      // big difference is a colleague or the same person after surgery.
-      faceSimilarity:
-        distance === null
-          ? "unknown"
-          : distance <= 0.5
-            ? "similar"
-            : distance <= 0.6
-              ? "uncertain"
-              : "different",
-    };
-  }
+  if (refType === "face_change") throw Forbidden("Persetujuan biometrik memerlukan HRIS Pro.");
 
   return {
     title: "Tukar Libur",
@@ -311,17 +270,7 @@ async function loadRef(refType: RefType, refId: RecordId) {
       summary: `Koreksi absen ${formatDate(doc.date)} (${doc.clockInTime}–${doc.clockOutTime})`,
     };
   }
-  if (refType === "face_change") {
-    const doc = await FaceChangeRequest.findById(refId)
-      .select("employeeId")
-      .populate("employeeId", "name")
-      .lean<{ employeeId: { _id: RecordId; name?: string } } | null>();
-    if (!doc) throw NotFound("Permintaan penggantian wajah tidak ditemukan.");
-    return {
-      employeeId: doc.employeeId._id,
-      summary: `Penggantian wajah presensi ${doc.employeeId.name ?? ""}`.trim(),
-    };
-  }
+  if (refType === "face_change") throw Forbidden("Persetujuan biometrik memerlukan HRIS Pro.");
 
   const doc = await HolidaySwapRequest.findById(refId).lean<{
     employeeId: RecordId;
@@ -430,54 +379,5 @@ async function finalize(
     return;
   }
 
-  if (refType === "face_change") {
-    const request = await FaceChangeRequest.findById(refId);
-    if (!request || request.status !== "pending") return;
-
-    request.status = status;
-    request.decidedAt = new Date();
-    request.decisionNote = comment;
-    await request.save();
-
-    if (status !== "approved") {
-      // A refused face is not kept "just in case". The request document stays
-      // as the record that it was made and refused; the face data does not.
-      request.descriptors = "";
-      await request.save();
-      await storageProvider.delete(request.referencePhoto).catch(() => {});
-      return;
-    }
-
-    // The request becomes the profile. The previous reference photo is removed
-    // rather than archived: keeping faces nobody uses any more is exactly the
-    // biometric retention the consent text promises not to do.
-    const previous = await FaceProfile.findOne({ employeeId: request.employeeId })
-      .select("referencePhoto")
-      .lean<{ referencePhoto: string } | null>();
-
-    await FaceProfile.findOneAndUpdate(
-      { employeeId: request.employeeId },
-      {
-        $set: {
-          descriptors: request.descriptors,
-          sampleCount: request.sampleCount,
-          referencePhoto: request.referencePhoto,
-          consentAt: request.consentAt,
-          consentVersion: request.consentVersion,
-          source: "change_request",
-          lastVerifiedAt: null,
-        },
-      },
-      { upsert: true }
-    );
-
-    if (previous?.referencePhoto && previous.referencePhoto !== request.referencePhoto) {
-      await storageProvider.delete(previous.referencePhoto).catch(() => {});
-    }
-
-    // The profile now holds the descriptors; a second copy on the request would
-    // survive a later reset and quietly defeat an erasure request.
-    request.descriptors = "";
-    await request.save();
-  }
+  if (refType === "face_change") throw Forbidden("Persetujuan biometrik memerlukan HRIS Pro.");
 }

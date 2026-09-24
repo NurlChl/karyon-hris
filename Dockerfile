@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json .npmrc ./
@@ -6,7 +6,7 @@ RUN npm ci
 COPY . .
 RUN npm run build && npm run build:db
 
-FROM node:22-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 RUN addgroup -S nodejs -g 1001 && adduser -S nextjs -u 1001 -G nodejs && mkdir -p /app/storage && chown nextjs:nodejs /app/storage

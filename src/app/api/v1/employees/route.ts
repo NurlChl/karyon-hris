@@ -306,6 +306,16 @@ export const POST = wrapRouteHandler(async (req) => {
           lockedUntil: null,
         }
       );
+      // A reset by HR is a sensitive action in its own right; the value is never logged.
+      // Existing sessions end automatically because the credential stamp changes.
+      void logActivity({
+        userId: ctx.user.id,
+        action: "RESET_EMPLOYEE_PASSWORD",
+        module: "employees",
+        after: { employeeId: String(existing._id), mustChangePassword: Boolean(settings.force_password_change_on_first_login) },
+        ip: ctx.ip,
+        userAgent: ctx.userAgent,
+      });
     }
 
     void logActivity({

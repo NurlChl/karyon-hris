@@ -227,9 +227,14 @@ export function AppShell({
   const [disciplineAccess, setDisciplineAccess] = useState(false);
   useEffect(() => {
     let active = true;
-    fetch("/api/v1/discipline?view=access", { credentials: "same-origin", cache: "no-store" }).then((r) => { if (active) setDisciplineAccess(r.ok); }).catch(() => { if (active) setDisciplineAccess(false); });
+    fetch("/api/v1/discipline?view=access", { credentials: "same-origin", cache: "no-store" })
+      .then(async (r) => {
+        const body = r.ok ? await r.json().catch(() => null) : null;
+        if (active) setDisciplineAccess(r.ok && body?.data?.available !== false);
+      })
+      .catch(() => { if (active) setDisciplineAccess(false); });
     return () => { active = false; };
-  }, [role, pathname]);
+  }, [role]);
 
   // Links the current role cannot use are removed rather than shown disabled —
   // a menu that only leads to "access denied" is worse than a shorter menu.

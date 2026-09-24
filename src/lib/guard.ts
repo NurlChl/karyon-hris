@@ -7,6 +7,10 @@ import type { NextResponse } from "next/server";
 import { ZodError, type ZodType } from "zod";
 import User from "@/models/User";
 import Employee from "@/models/Employee";
+import { bearerApiKey, permissionScope } from "./integrations/api-scopes";
+import { authenticateApiKey } from "./integrations/api-key-auth";
+import { bindApiKey } from "./integrations/request-context";
+import { apiKeyAllows } from "./rbac";
 import {
   employeeRecordScopeFilter,
   scopeFilterForFields,
@@ -27,6 +31,8 @@ export interface GuardContext {
   permission: PermissionResult;
   ip: string;
   userAgent: string;
+  /** Set when the request authenticated with a Pro API key instead of a session. */
+  apiKeyId?: string;
 }
 
 /** Thrown by guards; `wrapRouteHandler` turns it into the standard error body. */
@@ -55,8 +61,34 @@ export const Conflict = (msg: string) => new HttpError(409, "CONFLICT", msg);
 /** Roles that may reach the admin/CMS surface at all. */
 export const ADMIN_ROLES = ["SUPERADMIN", "DIREKSI", "HRD", "AUDIT", "GA", "SPV"];
 
-/** Resolves the signed-in user or throws 401. */
+/**
+ * Personal or human-decision endpoints: an integration must never read a
+ * user's notifications, change a password, enrol a face, decide an approval or
+ * read confidential complaints on someone's behalf.
+ */
+const SESSION_ONLY_PREFIXES = [
+  "/api/v1/auth/", "/api/v1/notifications", "/api/v1/face", "/api/v1/uploads", "/api/v1/approvals",
+  "/api/v1/complaints", "/api/v1/birthdays", "/api/v1/docs", "/api/v1/license", "/api/v1/integrations/",
+];
+
+/**
+ * Resolves the signed-in user, or the creator of a Pro API key, or throws.
+ *
+ * A key identity carries no employee link: self-service actions need an
+ * employee record and narrow (self/branch/division) grants resolve to nothing,
+ * so a key only reaches data its creator may see company-wide. Every
+ * `checkPermission` for that user in this request is further limited to the
+ * key scopes (see `rbac/index.ts`).
+ */
 export async function requireUser(req: Request): Promise<GuardContext> {
+  const token = bearerApiKey(req);
+  if (token) {
+    const path = new URL(req.url).pathname;
+    if (SESSION_ONLY_PREFIXES.some((prefix) => path.startsWith(prefix))) {
+      throw Forbidden("Endpoint ini hanya dapat dipakai melalui sesi login, bukan API key.");
+    }
+    return requireApiKey(req, token);
+  }
   const session = await auth();
   if (!session?.user?.id) throw Unauthorized();
   if (session.user.mustChangePassword) {
@@ -65,13 +97,29 @@ export async function requireUser(req: Request): Promise<GuardContext> {
     const viewingOwnProfile = req.method === "GET" && session.user.employeeId && pathname === `/api/v1/employees/${session.user.employeeId}`;
     if (!changingPassword && !viewingOwnProfile) throw Forbidden("Ganti kata sandi awal sebelum menggunakan fitur lainnya.");
   }
+  return loadAccount(req, session.user.id);
+}
+
+/**
+ * Authenticates a Pro API key. The key acts as the user who created it, so the
+ * creator's live permission still applies on top of the key's scopes.
+ */
+async function requireApiKey(req: Request, token: string): Promise<GuardContext> {
+  const key = await authenticateApiKey(req, token);
+  // Without the request context the RBAC layer could not see the key scopes: fail closed.
+  if (!bindApiKey(key)) throw Forbidden("Endpoint ini tidak mendukung API key.");
+  const ctx = await loadAccount(req, key.userId);
+  return { ...ctx, user: { ...ctx.user, employeeId: null, branchId: null, divisionId: null }, apiKeyId: key.keyId };
+}
+
+async function loadAccount(req: Request, userId: string): Promise<GuardContext> {
   await connectToDatabase();
 
   // JWTs are only proof of a previous login. Re-read mutable authorization
   // state so account deactivation, role changes, and employee transfers take
   // effect immediately instead of waiting up to twelve hours for expiry.
-  if (!/^[0-9a-fA-F]{24}$/.test(session.user.id)) throw Unauthorized();
-  const account = await User.findById(session.user.id)
+  if (!/^[0-9a-fA-F]{24}$/.test(userId)) throw Unauthorized();
+  const account = await User.findById(userId)
     .populate("roleId", "name")
     .select("email roleId employeeId isActive")
     .lean<{
@@ -102,7 +150,7 @@ export async function requireUser(req: Request): Promise<GuardContext> {
 
   return {
     user: {
-      id: session.user.id,
+      id: userId,
       email: account.email,
       role: account.roleId.name,
       employeeId,
@@ -122,6 +170,9 @@ export async function requirePermission(
   action: string
 ): Promise<GuardContext> {
   const ctx = await requireUser(req);
+  if (ctx.apiKeyId && !apiKeyAllows(module, action)) {
+    throw Forbidden(`API key tidak memiliki scope ${permissionScope(module, action)}.`);
+  }
   const permission = await checkPermission(ctx.user.id, module, action);
   if (!permission.allowed) {
     throw Forbidden(

@@ -94,7 +94,7 @@ export default function HolidaysPage() {
             Menentukan hari mana yang tidak memotong saldo cuti dan mana yang dapat ditukar libur.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Select
             value={String(year)}
             onChange={(e) => setYear(Number(e.target.value))}

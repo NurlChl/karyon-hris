@@ -75,6 +75,10 @@ export const SETTING_DEFS: SettingDef[] = [
   { key: "location_override_min_note", label: "Panjang minimal alasan kendala lokasi", description: "Mencegah alasan asal-asalan seperti \"a\".", type: "number", default: 15, unit: "karakter", min: 0, max: 500, group: "attendance" },
   { key: "max_absen_correction", label: "Kuota koreksi absen", description: "Maksimal pengajuan koreksi absen per karyawan per bulan.", type: "number", default: 3, unit: "x / bulan", min: 0, max: 31, group: "attendance" },
   { key: "correction_max_backdate_days", label: "Batas mundur koreksi absen", description: "Koreksi hanya boleh untuk tanggal dalam rentang hari terakhir.", type: "number", default: 14, unit: "hari", min: 1, max: 180, group: "attendance" },
+  { key: "attendance_alerts_enabled", label: "Pantau & ingatkan kehadiran otomatis", description: "Mengirim notifikasi ke karyawan yang belum absen masuk/pulang, ringkasan harian ke atasan dan HR, serta pemberitahuan alpha. Diperiksa setiap 5 menit oleh server.", type: "boolean", default: true, group: "attendance" },
+  { key: "attendance_reminder_after_minutes", label: "Ingatkan belum absen masuk setelah", description: "Menit setelah jam masuk + toleransi. Satu pengingat per karyawan per hari.", type: "number", default: 15, unit: "menit", min: 0, max: 240, group: "attendance" },
+  { key: "attendance_clockout_reminder_minutes", label: "Ingatkan belum absen pulang setelah", description: "Menit setelah jam pulang jadwal. Satu pengingat per karyawan per hari.", type: "number", default: 60, unit: "menit", min: 0, max: 480, group: "attendance" },
+  { key: "attendance_summary_hour", label: "Jam ringkasan kehadiran untuk atasan & HR", description: "Ringkasan jumlah yang belum absen hari ini dan daftar alpha kemarin dikirim sekali sehari mulai jam ini (WIB).", type: "number", default: 10, unit: "jam", min: 0, max: 23, group: "attendance" },
   { key: "attendance_photo_retention_days", label: "Retensi foto presensi", description: "Foto presensi lebih lama dari ini boleh diarsipkan/dihapus oleh tugas terjadwal. 0 = simpan selamanya.", type: "number", default: 365, unit: "hari", min: 0, max: 3650, group: "attendance" },
 
   /* ---- leave ---- */
@@ -179,7 +183,7 @@ export async function getSettings(force = false): Promise<SettingsSnapshot> {
     const rows = await Setting.find({}).lean<Array<{ key: string; value: unknown }>>();
     for (const row of rows) {
       // Structured, credential-like rows are read by their own modules only.
-      if (row.key === "initial_password_policy") continue;
+      if (row.key === "initial_password_policy" || row.key === "license_activation") continue;
       snapshot[row.key] = SETTING_MAP[row.key]
         ? coerceSetting(row.key, row.value)
         : (row.value as string);

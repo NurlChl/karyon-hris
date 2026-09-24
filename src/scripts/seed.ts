@@ -279,12 +279,27 @@ const HOLIDAYS_2026 = [
 
 /* ------------------------------------------------------------------ */
 
-export async function seed() {
-  if (process.env.NODE_ENV === "production") throw new Error("Seed demo tidak boleh dijalankan di produksi.");
-  if (!process.env.SEED_ADMIN_PASSWORD || !process.env.SEED_STAFF_PASSWORD ||
-      process.env.SEED_ADMIN_PASSWORD.length < 12 || process.env.SEED_STAFF_PASSWORD.length < 12) {
-    throw new Error("SEED_ADMIN_PASSWORD dan SEED_STAFF_PASSWORD minimal 12 karakter wajib diisi sebelum seed.");
+/**
+ * Baseline master data and the superadmin are production-safe: the Docker
+ * image runs this bundle as `node db-seed.cjs` to bootstrap a new install.
+ * The demo staff account is only created outside production and only when
+ * SEED_STAFF_PASSWORD is supplied.
+ */
+function bootstrapAccounts() {
+  const adminEmail = (process.env.SEED_ADMIN_EMAIL || "admin@hris.com").trim().toLowerCase();
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "";
+  const staffPassword = process.env.SEED_STAFF_PASSWORD ?? "";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail) || adminEmail.length > 254) {
+    throw new Error("SEED_ADMIN_EMAIL tidak valid.");
   }
+  if (adminPassword.length < 12) throw new Error("SEED_ADMIN_PASSWORD minimal 12 karakter wajib diisi sebelum seed.");
+  const demoStaff = process.env.NODE_ENV !== "production" && staffPassword.length > 0;
+  if (demoStaff && staffPassword.length < 12) throw new Error("SEED_STAFF_PASSWORD minimal 12 karakter.");
+  return { adminEmail, adminPassword, staffPassword: demoStaff ? staffPassword : null };
+}
+
+export async function seed() {
+  const accounts = bootstrapAccounts();
   console.log("HRIS — seeding database\n" + "=".repeat(40));
   await connectToDatabase();
 
@@ -512,19 +527,13 @@ export async function seed() {
 
   /* 11. Demo accounts -------------------------------------------------- */
   step("Accounts");
-  if (!process.env.SEED_ADMIN_PASSWORD || !process.env.SEED_STAFF_PASSWORD) {
-    throw new Error(
-      "SEED_ADMIN_PASSWORD dan SEED_STAFF_PASSWORD wajib diisi sebelum menjalankan seed."
-    );
-  }
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD;
-  const staffPassword = process.env.SEED_STAFF_PASSWORD;
+  const { adminEmail, adminPassword, staffPassword } = accounts;
 
   await User.findOneAndUpdate(
-    { email: "admin@hris.com" },
+    { email: adminEmail },
     {
       $setOnInsert: {
-      email: "admin@hris.com",
+      email: adminEmail,
       passwordHash: await bcrypt.hash(adminPassword, 12),
       roleId: roles.SUPERADMIN._id,
       isActive: true,
@@ -536,6 +545,9 @@ export async function seed() {
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
 
+  if (!staffPassword) {
+    log(`Superadmin ${adminEmail} siap. Akun demo karyawan dilewati (produksi atau SEED_STAFF_PASSWORD kosong).`);
+  } else {
   await Counter.findOneAndUpdate(
     { key: "employee:2026" },
     { $max: { seq: 1 } },
@@ -605,10 +617,11 @@ export async function seed() {
     },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
+  }
 
   console.log("\n" + "=".repeat(40));
   console.log("Seeding selesai.\n");
-  console.log("  Akun demo: admin@hris.com dan budi@hris.com. Kata sandi tidak dicetak dan akun lama tidak direset.");
+  console.log(`  Akun: ${adminEmail}${staffPassword ? " dan budi@hris.com (demo)" : ""}. Kata sandi tidak dicetak dan akun lama tidak direset.`);
   console.log(
     "\n  Simpan kredensial bootstrap ini secara aman dan ganti setelah login pertama.\n"
   );

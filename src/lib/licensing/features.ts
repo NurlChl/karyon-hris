@@ -33,7 +33,8 @@ export interface EntitlementSnapshot {
   expiresAt: string | null;
   graceUntil: string | null;
   installationId: string | null;
-  source: "agent" | "development" | "community";
+  siteOrigin?: string;
+  source: "lease" | "development" | "community";
 }
 
 export const COMMUNITY_ENTITLEMENTS: EntitlementSnapshot = {
@@ -48,7 +49,7 @@ export const COMMUNITY_ENTITLEMENTS: EntitlementSnapshot = {
 
 /** Re-evaluates a cached agent lease so an outage can never freeze Pro access forever. */
 export function effectiveEntitlements(snapshot: EntitlementSnapshot, now = Date.now()): EntitlementSnapshot {
-  if (snapshot.source !== "agent") return snapshot;
+  if (snapshot.source !== "lease") return snapshot;
   const leaseEnd = snapshot.expiresAt ? new Date(snapshot.expiresAt).getTime() : 0;
   const graceEnd = snapshot.graceUntil ? new Date(snapshot.graceUntil).getTime() : 0;
   if (!Number.isFinite(graceEnd) || now > graceEnd) return { ...snapshot, status: "expired", features: [] };

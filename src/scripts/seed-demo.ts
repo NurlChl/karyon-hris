@@ -6,7 +6,9 @@ import { createHash } from "node:crypto";
 import { connectToDatabase } from "../lib/db";
 import { DemoSeedRun } from "../lib/postgres-auxiliary";
 import { eachDayKey, isWeekendKey, wibStartOfDay, wibStartOfMonth, wibEndOfMonth, wibPeriodKey, wibDateKey } from "../lib/time";
-import { attendanceDeductions, classifyLateness } from "../lib/hr/policy-evidence";
+// Community demo fixtures do not execute the private payroll policy engine.
+const classifyLateness = (logs: Array<{date:string;lateMinutes:number}>, _policy:unknown, absent:string[]) => ({lateMinutes:logs.reduce((n,l)=>n+l.lateMinutes,0),lateDays:logs.filter(l=>l.lateMinutes>0).length,absentDays:absent.length,absentDates:absent,convertedDates:[] as string[]});
+const attendanceDeductions = (_facts:unknown,_policy:unknown) => ({late:0,absent:0,total:0});
 import { SETTING_DEFS } from "../lib/settings";
 import Role from "../models/Role";
 import User from "../models/User";

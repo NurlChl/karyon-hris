@@ -153,9 +153,10 @@ export default function AdminDashboardPage() {
 
           {/* Today */}
           <section>
-            <h2 className="eyebrow mb-3">
-              Kehadiran hari ini
-            </h2>
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h2 className="eyebrow">Kehadiran hari ini</h2>
+              <Link href="/admin/attendance" className="text-label font-semibold text-primary hover:underline">Lihat detail per karyawan →</Link>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <StatCard
                 label="Sudah absen masuk"
@@ -179,9 +180,9 @@ export default function AdminDashboardPage() {
                 tone="info"
               />
               <StatCard
-                label="Belum ada catatan"
+                label="Belum absen / alpha"
                 value={data.cards.absentToday}
-                hint="belum absen & tanpa izin"
+                hint="jadwal sudah mulai, tanpa presensi & izin"
                 icon={AlertTriangle}
                 tone={data.cards.absentToday > 0 ? "danger" : "neutral"}
               />

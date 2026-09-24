@@ -14,6 +14,7 @@ const ADMIN_ROLES = new Set(["SUPERADMIN", "DIREKSI", "HRD", "AUDIT", "GA", "SPV
  */
 const SECTION_ROLES: Array<{ prefix: string; roles: string[] }> = [
   { prefix: "/admin/settings", roles: ["SUPERADMIN", "HRD"] },
+  { prefix: "/admin/integrations", roles: ["SUPERADMIN", "HRD"] },
   { prefix: "/admin/audit", roles: ["SUPERADMIN", "AUDIT", "DIREKSI"] },
   { prefix: "/admin/payroll", roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI"] },
   { prefix: "/admin/employees", roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI"] },
@@ -59,7 +60,8 @@ export const proxy = auth((req) => {
   }
 
   // The API reference describes every endpoint, including administration ones.
-  if (isOnApiDocs && isLoggedIn && role !== "SUPERADMIN") {
+  // Same roles as the Integrasi API page; the OpenAPI route re-checks settings:read.
+  if (isOnApiDocs && isLoggedIn && !["SUPERADMIN", "HRD"].includes(role ?? "")) {
     return NextResponse.redirect(new URL(landingFor(role), nextUrl));
   }
 
