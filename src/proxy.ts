@@ -49,13 +49,12 @@ export const proxy = auth((req) => {
     path.startsWith("/auth/forgot-password");
 
   // --- Protected areas require a session --------------------------------
-  // Everyone lands on the employee login. Sending a signed-out visitor of
-  // /admin to the administrator login would publish that address to anyone who
-  // tries the obvious URL; administrators type it themselves. The callback is
-  // kept only for non-admin areas for the same reason.
+  // Use the matching login surface for each protected area. This is a UX and
+  // phishing-resistance boundary; the role checks below and in route handlers
+  // remain the actual authorisation controls.
   if ((isOnAdmin || isOnPortal || isOnDocs || isOnApiDocs) && !isLoggedIn) {
-    const loginUrl = new URL("/auth/login", nextUrl);
-    if (!isOnAdmin && !isOnApiDocs) loginUrl.searchParams.set("callbackUrl", path + nextUrl.search);
+    const loginUrl = new URL(isOnAdmin || isOnApiDocs ? "/auth/admin" : "/auth/login", nextUrl);
+    loginUrl.searchParams.set("callbackUrl", path + nextUrl.search);
     return NextResponse.redirect(loginUrl);
   }
 

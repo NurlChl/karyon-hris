@@ -31,14 +31,7 @@ export async function logActivity({
   userAgent = "",
 }: LogOptions): Promise<void> {
   try {
-    await connectToDatabase();
-
-    if (!isDbConnected()) {
-      console.warn(`[AUDIT] database offline — entri ${module}:${action} tidak tersimpan.`);
-      return;
-    }
-
-    await AuditLog.create({
+    const entry={
       userId,
       action,
       module,
@@ -47,9 +40,22 @@ export async function logActivity({
       ip,
       userAgent: userAgent.slice(0, 400),
       timestamp: new Date(),
-    });
+    };
+    const provider=(process.env.AUDIT_LOG_PROVIDER||"database").toLowerCase();
+    if(provider==="database"){
+      await connectToDatabase();
+      if (!isDbConnected()) {console.warn(`[AUDIT] database offline — entri ${module}:${action} tidak tersimpan.`);return;}
+      await AuditLog.create(entry);
+      return;
+    }
+    const token=provider==="axiom"?process.env.AXIOM_TOKEN:process.env.AUDIT_LOG_TOKEN;
+    const dataset=process.env.AXIOM_DATASET||"";
+    const endpoint=provider==="axiom"?`https://api.axiom.co/v1/datasets/${encodeURIComponent(dataset)}/ingest`:process.env.AUDIT_LOG_ENDPOINT||"";
+    if(!token||!/^https:\/\//.test(endpoint))throw new Error("provider log belum lengkap");
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),5000);
+    try{const response=await fetch(endpoint,{method:"POST",headers:{"content-type":"application/json",authorization:`Bearer ${token}`},body:JSON.stringify([{...entry,timestamp:entry.timestamp.toISOString()}]),signal:controller.signal});if(!response.ok)throw new Error(`provider log HTTP ${response.status}`);}finally{clearTimeout(timeout);}
   } catch (error) {
-    console.error("[AUDIT] gagal menyimpan entri:", (error as Error).message);
+    console.error("[AUDIT] gagal menyimpan entri:", {name:error instanceof Error?error.name:"Unknown"});
   }
 }
 

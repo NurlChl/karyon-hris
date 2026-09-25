@@ -10,7 +10,9 @@ import { Alert, Button, Field, Input } from "@/components/ui";
 function AdminLoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const callbackUrl = params.get("callbackUrl") || "/admin";
+  const requestedRedirect = params.get("callbackUrl") ?? "";
+  const callbackUrl = /^\/admin(?:\/|$)/.test(requestedRedirect) && !/[\\\x00-\x20]/.test(requestedRedirect)
+    ? requestedRedirect : "/admin";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
