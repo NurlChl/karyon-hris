@@ -68,7 +68,6 @@ export async function sendEmail({ to, subject, html }: SendEmailPayload): Promis
           html
         })
       });
-      const data = await res.json();
       return res.ok;
     } catch (err) {
       console.error("Resend email delivery failed:", err);
@@ -92,17 +91,20 @@ export async function sendEmail({ to, subject, html }: SendEmailPayload): Promis
       host,
       port,
       secure: port === 465,
+      requireTLS: port !== 465,
       auth: { user, pass }
     });
-
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || "noreply@hris.com",
-      to,
-      subject,
-      html
-    });
-
-    return !!info.messageId;
+    try {
+      const info = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || "noreply@hris.com",
+        to,
+        subject,
+        html
+      });
+      return !!info.messageId;
+    } finally {
+      transporter.close();
+    }
   } catch (err) {
     console.error("SMTP email delivery failed:", err);
     return false;

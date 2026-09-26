@@ -12,6 +12,7 @@ const OTP_TTL_MINUTES = 10;
 const MAX_ATTEMPTS = 5;
 
 export type OtpPurpose = "reset_password" | "change_password";
+type EmailDelivery=(payload:{to:string;subject:string;html:string})=>Promise<boolean>;
 
 /**
  * Issues a one-time code and emails it.
@@ -20,24 +21,13 @@ export type OtpPurpose = "reset_password" | "change_password";
  * used `Math.random`, which is predictable) and only its SHA-256 is stored, so
  * a database read cannot reveal a live code.
  */
-export async function issueOtp(email: string, purpose: OtpPurpose, companyName: string) {
-  await connectToDatabase();
+export async function issueOtp(email: string, purpose: OtpPurpose, companyName: string,deliver:EmailDelivery=sendEmail) {
   const code = randomOtp(6);
-
-  await VerificationCode.findOneAndUpdate(
-    { email: email.toLowerCase(), purpose },
-    {
-      codeHash: sha256(code),
-      expires: new Date(Date.now() + OTP_TTL_MINUTES * 60_000),
-      attempts: 0,
-    },
-    { upsert: true, new: true }
-  );
 
   const heading =
     purpose === "reset_password" ? "Kode Verifikasi Reset Kata Sandi" : "Kode Verifikasi Ganti Kata Sandi";
 
-  await sendEmail({
+  const delivered=await deliver({
     to: email,
     subject: `[${companyName}] ${heading}`,
     html: `<!doctype html><html lang="id"><body style="margin:0;background:#f6f7f9;padding:24px;font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#0f172a">
@@ -57,6 +47,22 @@ export async function issueOtp(email: string, purpose: OtpPurpose, companyName: 
         </table>
       </td></tr></table></body></html>`,
   });
+  if(!delivered){
+    throw new HttpError(503,"EMAIL_UNAVAILABLE","Layanan email belum tersedia atau menolak pengiriman. Periksa konfigurasi provider email lalu coba kembali.");
+  }
+
+  // Persist only after the provider accepts the message. A failed delivery
+  // must never replace a still-valid code or make the API report success.
+  await connectToDatabase();
+  await VerificationCode.findOneAndUpdate(
+    { email: email.toLowerCase(), purpose },
+    {
+      codeHash: sha256(code),
+      expires: new Date(Date.now() + OTP_TTL_MINUTES * 60_000),
+      attempts: 0,
+    },
+    { upsert: true, new: true }
+  );
 }
 
 /**
