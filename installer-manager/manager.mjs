@@ -18,7 +18,15 @@ export class UpgradeManager {
     if(!/^[a-z0-9][a-z0-9_-]{0,62}$/.test(project))throw new Error("INVALID_PROJECT");
     this.project=project;this.run=run;this.fetcher=fetcher;this.health=health;this.delay=delay;this.state={stage:"idle"};this.running=false;
   }
-  async save(state){this.state={...state,updatedAt:new Date().toISOString()};await mkdir(this.data,{recursive:true,mode:0o700});await writeFile(join(this.data,"status.json"),JSON.stringify(this.state),{mode:0o600});}
+  async save(state){
+    const next={...state,updatedAt:new Date().toISOString()};
+    await mkdir(this.data,{recursive:true,mode:0o700});
+    // Keep the last complete checkpoint if the process stops during a write.
+    const file=join(this.data,"status.json"),pending=join(this.data,"status.json.tmp");
+    await writeFile(pending,JSON.stringify(next),{mode:0o600});
+    await rename(pending,file);
+    this.state=next;
+  }
   async initialize(){
     try{this.state=JSON.parse(await readFile(join(this.data,"status.json"),"utf8"));}catch(error){if(error.code!=="ENOENT")throw error;}
     if(["validating","downloading","restarting","checking","rolling_back"].includes(this.state.stage)){

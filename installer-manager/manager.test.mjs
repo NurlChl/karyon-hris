@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {mkdtemp,writeFile,readFile,rm} from "node:fs/promises";
+import {mkdtemp,writeFile,readFile,rm,mkdir} from "node:fs/promises";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {UpgradeManager,replaceImage,validServer} from "./manager.mjs";
@@ -38,6 +38,30 @@ for(const scenario of ["success","pull-failure","health-failure","wrong-site"]){
         if(scenario==="health-failure"){assert.equal(manager.state.code,"UPGRADE_ROLLED_BACK");assert.equal(calls.filter(call=>call.args.includes("up")).length,2);assert.ok(healthyCalls>1);}
         else assert.equal(calls.filter(call=>call.args.includes("up")).length,0);
       }
+    }finally{await rm(directory,{recursive:true,force:true});}
+  });
+}
+
+for(const stage of ["downloading","restarting","checking","rolling_back"]){
+  test(`interrupted upgrade recovers from ${stage} without changing secrets or deleting volumes`,async()=>{
+    const directory=await mkdtemp(join(tmpdir(),"hris-manager-recovery-")),data=join(directory,"state"),calls=[];
+    const previousImage=`sha256:${"c".repeat(64)}`;
+    await mkdir(data);
+    await writeFile(join(directory,".env"),"HRIS_IMAGE=registry.example/pro:latest\nENCRYPTION_KEY=keep-existing\n");
+    await writeFile(join(data,"status.json"),JSON.stringify({stage,previousImage}));
+    // Simulate an interrupted checkpoint write. The complete checkpoint wins.
+    await writeFile(join(data,"status.json.tmp"),'{"stage":');
+    const manager=new UpgradeManager({directory,data,licenseServer:"https://license.example",siteOrigin:"https://hr.example",project:"hris",run:async args=>{calls.push(args);return "";},health:async()=>true});
+    try{
+      await manager.initialize();
+      assert.equal(manager.state.stage,"failed");
+      assert.equal(manager.state.code,stage==="downloading"?"INTERRUPTED":"INTERRUPTED_ROLLED_BACK");
+      const env=await readFile(join(directory,".env"),"utf8");
+      assert.match(env,/ENCRYPTION_KEY=keep-existing/);
+      if(stage!=="downloading")assert.ok(env.includes(`HRIS_IMAGE=${previousImage}`));
+      assert.equal(calls.length,stage==="downloading"?0:1);
+      for(const args of calls){assert.ok(args.includes("--no-deps"));assert.equal(args.at(-1),"app");assert.ok(!args.includes("down"));}
+      assert.deepEqual(JSON.parse(await readFile(join(data,"status.json"),"utf8")),manager.state);
     }finally{await rm(directory,{recursive:true,force:true});}
   });
 }
