@@ -49,3 +49,15 @@ jobs:
         run: |
           echo "::notice::First-ever push of a package defaults to PRIVATE on GHCR, even from a public-facing image."
           echo "::notice::Go to https://github.com/users/${{ github.repository_owner }}/packages/container/${{ env.IMAGE_NAME }}/settings (owner path may be lowercase) and set visibility to Public (one-time)."
+
+      - name: Build public installation manager (contains no Pro features)
+        uses: docker/build-push-action@v7
+        with:
+          context: ./installer-manager
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-installer:${{ inputs.image_tag }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-installer:latest
+
+      - name: Installer configuration
+        run: echo "::notice::Set HRIS_MANAGER_IMAGE to the published hris-installer tag in the website environment. Make this helper package public too; the Pro image stays in your private registry."

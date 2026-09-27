@@ -25,7 +25,9 @@ interface ActivationState {
   updatedAt: string;
 }
 
-export class LicenseServerError extends Error {}
+export class LicenseServerError extends Error {
+  constructor(message:string,readonly status?:number){super(message);}
+}
 
 /** The license website; HTTPS only, plain HTTP only on loopback for development. */
 export function licenseServer(): string {
@@ -76,7 +78,7 @@ async function call<T>(path: string, body: unknown, notFound = "Server lisensi t
   }
   const json = (await response.json().catch(() => ({}))) as { data?: T; error?: string };
   if (response.status === 404) throw new LicenseServerError(notFound);
-  if (!response.ok) throw new LicenseServerError(typeof json.error === "string" ? json.error : `Server lisensi menolak permintaan (${response.status}).`);
+  if (!response.ok) throw new LicenseServerError(typeof json.error === "string" ? json.error : `Server lisensi menolak permintaan (${response.status}).`,response.status);
   return json.data as T;
 }
 
@@ -103,7 +105,9 @@ export function renewLease(): Promise<void> {
     renewing = (async () => {
       const current = await readActivation();
       if (!current) return;
-      const data = await call<{ lease: string }>("/api/licenses/lease", { installationId: current.installationId, activationSecret: current.activationSecret, siteOrigin: siteOrigin() });
+      let data:{lease:string};
+      try{data=await call<{ lease: string }>("/api/licenses/lease", { installationId: current.installationId, activationSecret: current.activationSecret, siteOrigin: siteOrigin() });}
+      catch(error){if(error instanceof LicenseServerError&&error.status===403)await writeActivation({...current,lease:"",updatedAt:new Date().toISOString()});throw error;}
       await writeActivation({ ...current, lease: data.lease, updatedAt: new Date().toISOString() });
     })().finally(() => { renewing = null; });
   }

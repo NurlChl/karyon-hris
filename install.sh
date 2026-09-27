@@ -15,9 +15,11 @@ set -eu
 # Filled in when the license website serves this script; unreplaced values count as empty.
 RAW_BASE="${HRIS_RAW_BASE:-__HRIS_RAW_BASE__}"
 DEFAULT_IMAGE="${HRIS_COMMUNITY_IMAGE:-__HRIS_COMMUNITY_IMAGE__}"
+MANAGER_IMAGE="${HRIS_MANAGER_IMAGE:-__HRIS_MANAGER_IMAGE__}"
 LICENSE_SERVER="${HRIS_LICENSE_SERVER:-__HRIS_LICENSE_SERVER__}"
 case "$RAW_BASE" in __HRIS_*) RAW_BASE="" ;; esac
 case "$DEFAULT_IMAGE" in __HRIS_*) DEFAULT_IMAGE="" ;; esac
+case "$MANAGER_IMAGE" in __HRIS_*) MANAGER_IMAGE="" ;; esac
 case "$LICENSE_SERVER" in __HRIS_*) LICENSE_SERVER="" ;; esac
 
 DIR=""
@@ -143,6 +145,8 @@ fetch() { # fetch FILE (always refreshed so fixes to the compose files arrive wi
 }
 
 fetch compose.image.yml
+fetch compose.external.yml
+if [ -n "$MANAGER_IMAGE" ]; then fetch compose.manager.yml; fi
 if [ "$LIFECYCLE" = "yes" ]; then fetch compose.lifecycle.yml; fi
 
 cd "$DIR"
@@ -192,13 +196,28 @@ else
     say "HRIS_DB_NAME=hris"
     say "HRIS_DB_USER=hris"
     say "HRIS_DB_PASSWORD=$(rand_hex 32)"
+    say "HRIS_DATABASE_URL="
     say "AUTH_SECRET=$(rand_hex 32)"
     say "ENCRYPTION_KEY=$(rand_hex 32)"
     say "STORAGE_SIGNING_SECRET=$(rand_hex 32)"
     say "CRON_SECRET=$(rand_hex 32)"
   } > .env
   chmod 600 .env
+  printf '%s' "$ADMIN_EMAIL" > .bootstrap-pending
   say "Created $DIR/.env with random secrets (mode 600)."
+fi
+
+# Install the small public manager alongside Community. The Pro engine remains private.
+if [ -n "$MANAGER_IMAGE" ] && [ "$LIFECYCLE" != "yes" ]; then
+  valid_image "$MANAGER_IMAGE" || fail "Invalid manager image."
+  case "$(get_env COMPOSE_FILE)" in *compose.lifecycle.yml*) fail "Existing lifecycle overlay needs a separate migration before enabling the new manager." ;; esac
+  set_env HRIS_MANAGER_IMAGE "$MANAGER_IMAGE"
+  [ -n "$(get_env HRIS_MANAGER_TOKEN)" ] || set_env HRIS_MANAGER_TOKEN "$(rand_hex 32)"
+  [ -n "$(get_env HRIS_AGENT_TOKEN)" ] || set_env HRIS_AGENT_TOKEN "$(rand_hex 32)"
+  set_env COMPOSE_FILE "compose.image.yml:compose.manager.yml"
+fi
+if [ -n "$(get_env HRIS_DATABASE_URL)" ]; then
+  case "$(get_env COMPOSE_FILE)" in *compose.external.yml*) ;; *) set_env COMPOSE_FILE "$(get_env COMPOSE_FILE):compose.external.yml" ;; esac
 fi
 
 # --- Upgrade to Pro ------------------------------------------------------------
@@ -292,8 +311,8 @@ until docker compose exec -T app wget -q -O /dev/null http://127.0.0.1:3000/api/
 done
 
 SITE_URL=$(get_env NEXTAUTH_URL)
-if [ "$NEW_INSTALL" = "yes" ]; then
-  SEED_ADMIN_EMAIL="$ADMIN_EMAIL"
+if [ -f .bootstrap-pending ]; then
+  SEED_ADMIN_EMAIL="$(cat .bootstrap-pending)"
   SEED_ADMIN_PASSWORD="$(rand_password)"
   export SEED_ADMIN_EMAIL SEED_ADMIN_PASSWORD
   # Passed by name so the password never appears in the process list; it is not written to disk.
@@ -308,6 +327,7 @@ if [ "$NEW_INSTALL" = "yes" ]; then
   say " Upgrade to Pro any time from Lisensi & Paket."
   say "=============================================================="
   unset SEED_ADMIN_PASSWORD
+  rm -f .bootstrap-pending
 elif [ -n "$UPGRADE_CODE" ]; then
   say ""
   say "=============================================================="

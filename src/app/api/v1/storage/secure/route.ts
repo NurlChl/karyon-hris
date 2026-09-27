@@ -3,6 +3,10 @@ import { storageProvider, LocalProvider, toStorageKey } from "@/lib/storage";
 import { logActivity } from "@/lib/audit/logger";
 import { clientIp } from "@/lib/rate-limit";
 import { checkPermission } from "@/lib/rbac";
+import { canReadStoredPayslip } from "@/lib/payroll-file-access";
+import Payroll from "@/models/Payroll";
+import Complaint from "@/models/Complaint";
+import { complaintHandlerScope, canReadComplaintQueue } from "@/lib/complaint-access";
 
 /**
  * The single door to every stored file.
@@ -99,7 +103,36 @@ export async function GET(req: Request) {
     }
   }
 
-  if (!signatureValid && session?.user && !key.startsWith(FACE_PREFIX) && !key.startsWith(CANDIDATE_PREFIX)) {
+  // A directory/employee-id check is insufficient for unpublished payslips.
+  // Match the exact stored file to its payroll record before serving it.
+  let recordAuthorized = false;
+  if (!signatureValid && session?.user && key.startsWith("payrolls/")) {
+    const payroll = await Payroll.findOne({ fileUrl: { $in: [key, `/uploads/${key}`] } }).select("employeeId status").lean<{
+      employeeId: unknown;
+      status: string;
+    } | null>();
+    if (!payroll) return jsonError("Slip gaji tidak ditemukan.", 404);
+    if (!await canReadStoredPayslip(session.user, payroll)) {
+      return jsonError("Anda tidak memiliki izin membuka slip gaji ini.", 403);
+    }
+    recordAuthorized = true;
+  }
+
+  if (!signatureValid && session?.user && key.startsWith("complaints/")) {
+    const complaint = await Complaint.findOne({ attachments: { $in: [key, `/uploads/${key}`] } })
+      .select("reporterId target").lean<{ reporterId: unknown; target: string } | null>();
+    if (!complaint) return jsonError("Lampiran tidak ditemukan.", 404);
+    if (String(complaint.reporterId) !== session.user.employeeId) {
+      if (!canReadComplaintQueue(session.user.role, complaint.target)) return jsonError("Anda tidak memiliki izin membuka lampiran ini.", 403);
+      const scope = await complaintHandlerScope(session.user, "read");
+      if (!await Complaint.exists({ $and: [{ attachments: { $in: [key, `/uploads/${key}`] } }, scope] })) {
+        return jsonError("Anda tidak memiliki izin membuka lampiran ini.", 403);
+      }
+    }
+    recordAuthorized = true;
+  }
+
+  if (!signatureValid && !recordAuthorized && session?.user && !key.startsWith(FACE_PREFIX) && !key.startsWith(CANDIDATE_PREFIX)) {
     const role = session.user.role;
     const isPrivileged = PRIVILEGED_ROLES.includes(role);
     const scopedPrefix = EMPLOYEE_SCOPED_PREFIXES.find((p) => key.startsWith(p));

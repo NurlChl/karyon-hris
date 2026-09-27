@@ -42,6 +42,7 @@ async function triggerWebhook(payload: Record<string, unknown>): Promise<boolean
  */
 export async function sendEmail({ to, subject, html }: SendEmailPayload): Promise<boolean> {
   const provider = process.env.EMAIL_PROVIDER || "smtp";
+  const sender = process.env.EMAIL_FROM;
   
   // Try sending via Webhook if configured or explicitly requested
   if (provider === "webhook") {
@@ -53,6 +54,11 @@ export async function sendEmail({ to, subject, html }: SendEmailPayload): Promis
     );
   }
 
+  if (!sender) {
+    console.error("Email delivery unavailable: EMAIL_FROM is not configured");
+    return false;
+  }
+
   if (provider === "resend" && process.env.RESEND_API_KEY) {
     try {
       const res = await fetch("https://api.resend.com/emails", {
@@ -62,11 +68,12 @@ export async function sendEmail({ to, subject, html }: SendEmailPayload): Promis
           "Authorization": `Bearer ${process.env.RESEND_API_KEY}`
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || "noreply@hris.com",
+          from: sender,
           to: [to],
           subject,
           html
-        })
+        }),
+        signal: AbortSignal.timeout(10_000),
       });
       return res.ok;
     } catch (err) {
@@ -92,11 +99,14 @@ export async function sendEmail({ to, subject, html }: SendEmailPayload): Promis
       port,
       secure: port === 465,
       requireTLS: port !== 465,
-      auth: { user, pass }
+      auth: { user, pass },
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     });
     try {
       const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || "noreply@hris.com",
+        from: sender,
         to,
         subject,
         html

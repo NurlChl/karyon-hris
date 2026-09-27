@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { readActivation } from "@/lib/licensing/activation";
+import {EDITION,getEntitlements} from "@/lib/licensing/server";
 
 const same = (a: string, b: string) => { const x = Buffer.from(a), y = Buffer.from(b); return x.length === y.length && timingSafeEqual(x, y); };
 
@@ -14,5 +15,6 @@ export async function GET(req: Request) {
     return Response.json({ success: false, error: { code: "UNAUTHORIZED", message: "Token agent tidak valid." } }, { status: 401 });
   }
   const activation = await readActivation();
-  return Response.json({ lease: activation?.lease ?? null }, { headers: { "Cache-Control": "no-store" } });
+  const entitlement=await getEntitlements();
+  return Response.json({ lease: activation?.lease ?? null,edition:EDITION,status:entitlement.status }, { headers: { "Cache-Control": "no-store" } });
 }

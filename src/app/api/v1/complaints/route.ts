@@ -16,6 +16,7 @@ import { RATE_RULES } from "@/lib/rate-limit";
 import { logActivity } from "@/lib/audit/logger";
 import { attachmentInputSchema } from "@/lib/attachments";
 import { attachmentRefHref, resolveSingleAttachment } from "@/lib/uploads";
+import { complaintHandlerScope, complaintAttachmentHref } from "@/lib/complaint-access";
 import { notifyUsers, resolveRecipientsByRole, resolveRecipientForEmployee } from "@/lib/notification/notify";
 import { randomToken } from "@/lib/crypto";
 import Complaint from "@/models/Complaint";
@@ -53,14 +54,15 @@ export const GET = wrapRouteHandler(async (req) => {
     filter = { reporterId: ctx.user.employeeId };
   } else {
     asHandler = true;
+    const scope = await complaintHandlerScope(ctx.user, "read");
     if (ctx.user.role === "SUPERADMIN" || ctx.user.role === "AUDIT") {
-      filter = {};
+      filter = scope;
     } else if (ctx.user.role === "SPV") {
-      filter = { target: "spv" };
+      filter = { $and: [{ target: "spv" }, scope] };
     } else if (ctx.user.role === "HRD") {
-      filter = { target: "hrd" };
+      filter = { $and: [{ target: "hrd" }, scope] };
     } else {
-      filter = { target: "direksi" };
+      filter = { $and: [{ target: "direksi" }, scope] };
     }
   }
 
@@ -109,7 +111,8 @@ export const GET = wrapRouteHandler(async (req) => {
         responses: ((row.responses ?? []) as Array<{ isInternal?: boolean }>).filter(
           (r) => asHandler || !r.isInternal
         ),
-        attachments: await attachmentRefHref(row.attachments as string),
+        attachments: complaintAttachmentHref(String(row._id), anonymous, row.attachments as string)
+          ?? await attachmentRefHref(row.attachments as string),
       };
     })
   );
@@ -153,7 +156,8 @@ export const POST = wrapRouteHandler(async (req) => {
     legacyDataUrl: body.attachment,
     context: "complaint",
     ownerUserId: ctx.user.id,
-    destination: `complaints/${ctx.employeeId}`,
+    // Keep the reporter's ID out of any storage key or signed URL.
+    destination: body.isAnonymous ? `complaints/anonymous/${randomToken(16)}` : `complaints/${ctx.employeeId}`,
   });
 
   const ticketCode = `PGD-${randomToken(4).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6)}`;
@@ -228,7 +232,8 @@ export const PATCH = wrapRouteHandler(async (req) => {
   const ctx = await requireUser(req);
   const body = await parseBody(req, updateSchema);
 
-  const complaint = await Complaint.findById(body.id);
+  const scope = await complaintHandlerScope(ctx.user, "write");
+  const complaint = await Complaint.findOne({ $and: [{ _id: body.id }, scope] });
   if (!complaint) throw NotFound("Pengaduan tidak ditemukan.");
 
   const allowed = HANDLER_ROLES[complaint.target] ?? [];

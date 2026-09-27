@@ -1,0 +1,9 @@
+# Optional: use an existing PostgreSQL server. Keep its data and credentials unchanged.
+services:
+  postgres:
+    profiles: [bundled-db]
+  app:
+    depends_on: !reset {}
+    environment:
+      HRIS_DATABASE_URL: ${HRIS_DATABASE_URL:?Set HRIS_DATABASE_URL for external PostgreSQL}
+      HRIS_DB_SSL: ${HRIS_DB_SSL:-disable}

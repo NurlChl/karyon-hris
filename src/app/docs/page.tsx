@@ -17,6 +17,7 @@ import { Alert, Badge, ErrorState, Input, Select, SkeletonList, cn } from "@/com
 import { api, errorMessage } from "@/lib/client-api";
 import { ROLE_LABELS } from "@/lib/docs/roles";
 import type { DocBlock, DocChapter, DocSection } from "@/lib/docs/content";
+import { DocumentationCode } from "@/components/DocumentationCode";
 
 /**
  * The guide.
@@ -444,11 +445,7 @@ function BlockView({ block }: { block: DocBlock }) {
       );
 
     case "code":
-      return (
-        <pre className="max-w-3xl overflow-x-auto rounded-lg border border-line bg-surface-2 p-4 text-label leading-relaxed">
-          <code className="font-mono">{block.text}</code>
-        </pre>
-      );
+      return <DocumentationCode text={block.text} />;
 
     default:
       return null;

@@ -5,7 +5,7 @@ import { connectToDatabase } from "@/lib/db";
 import { randomOtp, sha256, safeEqual } from "@/lib/crypto";
 import { getSettings } from "@/lib/settings";
 import { sendEmail } from "@/lib/notification/notificationService";
-import { escapeHtml } from "@/lib/notification/notify";
+import { renderOtpEmail } from "./otp-email-template";
 import { HttpError } from "@/lib/guard";
 
 const OTP_TTL_MINUTES = 10;
@@ -24,28 +24,10 @@ type EmailDelivery=(payload:{to:string;subject:string;html:string})=>Promise<boo
 export async function issueOtp(email: string, purpose: OtpPurpose, companyName: string,deliver:EmailDelivery=sendEmail) {
   const code = randomOtp(6);
 
-  const heading =
-    purpose === "reset_password" ? "Kode Verifikasi Reset Kata Sandi" : "Kode Verifikasi Ganti Kata Sandi";
-
+  const message = renderOtpEmail(code, companyName, purpose, OTP_TTL_MINUTES);
   const delivered=await deliver({
     to: email,
-    subject: `[${companyName}] ${heading}`,
-    html: `<!doctype html><html lang="id"><body style="margin:0;background:#f6f7f9;padding:24px;font-family:Segoe UI,Helvetica,Arial,sans-serif;color:#0f172a">
-      <table role="presentation" width="100%"><tr><td align="center">
-        <table role="presentation" width="100%" style="max-width:480px;background:#fff;border:1px solid #e3e7ed;border-radius:12px">
-          <tr><td style="padding:24px">
-            <h1 style="margin:0 0 12px;font-size:17px">${escapeHtml(heading)}</h1>
-            <p style="margin:0;font-size:14px;line-height:1.6;color:#55637a">
-              Masukkan kode berikut untuk melanjutkan. Kode berlaku ${OTP_TTL_MINUTES} menit dan hanya dapat dipakai sekali.
-            </p>
-            <div style="margin:22px 0;padding:16px;background:#f1f3f6;border-radius:10px;text-align:center;font-size:28px;font-weight:700;letter-spacing:8px">${code}</div>
-            <p style="margin:0;font-size:12px;line-height:1.6;color:#7b8798">
-              Jika Anda tidak meminta ini, abaikan email ini dan kata sandi Anda tetap aman.
-              Jangan pernah membagikan kode ini kepada siapa pun, termasuk staf ${escapeHtml(companyName)}.
-            </p>
-          </td></tr>
-        </table>
-      </td></tr></table></body></html>`,
+    ...message,
   });
   if(!delivered){
     throw new HttpError(503,"EMAIL_UNAVAILABLE","Layanan email belum tersedia atau menolak pengiriman. Periksa konfigurasi provider email lalu coba kembali.");

@@ -248,8 +248,8 @@ export const POST = wrapRouteHandler(async (req) => {
   if (body.id) {
     const existing = await Employee.findOne({ $and: [{ _id: body.id }, employeeScope] });
     if (!existing) throw NotFound("Data karyawan tidak ditemukan.");
-    const linkedAccount = await User.findOne({ employeeId: existing._id }).populate("roleId", "name");
-    if (linkedAccount && linkedAccount.roleId?.name !== "STAFF" && !privileged) {
+    const linkedAccounts = await User.find({ employeeId: existing._id }).populate("roleId", "name");
+    if (linkedAccounts.some(account => account.roleId?.name !== "STAFF") && !privileged) {
       throw Forbidden("Perubahan akun berperan istimewa memerlukan izin pengelolaan peran.");
     }
 
@@ -263,7 +263,7 @@ export const POST = wrapRouteHandler(async (req) => {
       if (body.status === "resigned" || body.status === "suspended") {
         // Losing employment status must also close the login, otherwise a
         // departed employee keeps a valid session until it expires.
-        await User.updateOne({ employeeId: existing._id }, { isActive: false });
+        await User.updateMany({ employeeId: existing._id }, { isActive: false });
       } else {
         await User.updateOne({ employeeId: existing._id }, { isActive: true });
       }
@@ -466,14 +466,22 @@ export const DELETE = wrapRouteHandler(async (req) => {
   const id = new URL(req.url).searchParams.get("id");
   if (!id) throw BadRequest("ID karyawan wajib disertakan.");
 
-  const employee = await Employee.findById(id);
+  const employeeScope = scopeFilter(ctx, { employee: "_id", branch: "branchId", division: "divisionId" });
+  const employee = await Employee.findOne({ $and: [{ _id: id }, employeeScope] });
   if (!employee) throw NotFound("Data karyawan tidak ditemukan.");
+  const linkedAccounts = await User.find({ employeeId: employee._id }).populate("roleId", "name");
+  if (linkedAccounts.some(account => account.roleId?.name !== "STAFF")) {
+    const rolePermission = await checkPermission(ctx.user.id, "roles", "write");
+    if (!rolePermission.allowed || rolePermission.scope !== "all") {
+      throw Forbidden("Penonaktifan akun berperan istimewa memerlukan izin pengelolaan peran.");
+    }
+  }
 
   // Hard-deleting would orphan attendance, payroll, and audit records, so the
   // record is retired instead and the login disabled.
   employee.status = "resigned";
   await employee.save();
-  await User.updateOne({ employeeId: employee._id }, { isActive: false });
+  await User.updateMany({ employeeId: employee._id }, { isActive: false });
 
   void logActivity({
     userId: ctx.user.id,

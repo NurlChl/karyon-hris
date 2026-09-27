@@ -1,0 +1,31 @@
+# The installation manager only accepts an authenticated one-time upgrade code.
+# No host port is published. Docker access is restricted to this sidecar, never the app.
+services:
+  app:
+    environment:
+      HRIS_MANAGER_URL: http://manager:3210
+      HRIS_MANAGER_TOKEN: ${HRIS_MANAGER_TOKEN:?Set HRIS_MANAGER_TOKEN}
+  manager:
+    image: ${HRIS_MANAGER_IMAGE:?Set the published installer manager image}
+    restart: unless-stopped
+    environment:
+      HRIS_MANAGER_TOKEN: ${HRIS_MANAGER_TOKEN:?Set HRIS_MANAGER_TOKEN}
+      HRIS_LICENSE_SERVER: ${HRIS_LICENSE_SERVER:?Set HRIS_LICENSE_SERVER}
+      HRIS_SITE_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      HRIS_COMPOSE_PROJECT: ${COMPOSE_PROJECT_NAME:-hris}
+      HRIS_APP_URL: http://app:3000
+      HRIS_AGENT_TOKEN: ${HRIS_AGENT_TOKEN:?Set HRIS_AGENT_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/installation
+      - manager_data:/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE
+      - CHOWN
+      - FOWNER
+volumes:
+  manager_data:
