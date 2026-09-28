@@ -52,7 +52,9 @@ if ($newInstall) {
   if ($Url -eq 'http://localhost:3000') { $Url = "http://localhost:$Port" }
   $settings = [ordered]@{ COMPOSE_PROJECT_NAME='hris'; HRIS_IMAGE=$Image; HRIS_EDITION='community'; BIND_ADDRESS='127.0.0.1'; APP_PORT=$Port; NEXTAUTH_URL=$Url.TrimEnd('/'); TRUST_PROXY='0'; HRIS_LICENSE_SERVER=$LicenseServer.TrimEnd('/'); HRIS_DB_NAME='hris'; HRIS_DB_USER='hris'; HRIS_DATABASE_URL=''; HRIS_DB_SSL='disable' }
   foreach ($key in @('POSTGRES_ADMIN_PASSWORD','HRIS_DB_PASSWORD','AUTH_SECRET','ENCRYPTION_KEY','STORAGE_SIGNING_SECRET','CRON_SECRET','HRIS_MANAGER_TOKEN','HRIS_AGENT_TOKEN')) { $settings[$key] = Random-Hex }
-  Write-InstallFile '.env' (($settings.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "`n")
+  foreach ($entry in @(@('EMAIL_PROVIDER','smtp'),@('EMAIL_FROM',''),@('SMTP_HOST',''),@('SMTP_PORT','587'),@('SMTP_USER',''),@('SMTP_PASS',''),@('RESEND_API_KEY',''))) { $settings[$entry[0]] = $entry[1] }
+  $envHeader = "# Dibuat oleh installer HRIS. Simpan privat dan backup bersama database.`n# Secret inti diisi otomatis; jangan diganti setelah data tersimpan.`n# Email opsional saat instalasi, tetapi wajib dikonfigurasi sebelum mengirim OTP/notifikasi.`n# Pilih SMTP atau Resend dan gunakan alamat pengirim dari domain yang sudah diverifikasi.`n"
+  Write-InstallFile '.env' ($envHeader + (($settings.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "`n"))
   Write-InstallFile '.bootstrap-pending' $AdminEmail
 }
 if ((Read-Setting 'COMPOSE_FILE') -like '*compose.lifecycle.yml*') { throw 'Instalasi memakai agent lifecycle lama. Pertahankan konfigurasi tersebut; migrasikan overlay sebelum mengaktifkan manager baru.' }

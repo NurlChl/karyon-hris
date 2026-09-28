@@ -197,10 +197,19 @@ else
     say "HRIS_DB_USER=hris"
     say "HRIS_DB_PASSWORD=$(rand_hex 32)"
     say "HRIS_DATABASE_URL="
+    say "HRIS_DB_SSL=disable"
     say "AUTH_SECRET=$(rand_hex 32)"
     say "ENCRYPTION_KEY=$(rand_hex 32)"
     say "STORAGE_SIGNING_SECRET=$(rand_hex 32)"
     say "CRON_SECRET=$(rand_hex 32)"
+    say "# Email: isi SMTP atau Resend sebelum memakai OTP/notifikasi. Verifikasi domain pengirim."
+    say "EMAIL_PROVIDER=smtp"
+    say "EMAIL_FROM="
+    say "SMTP_HOST="
+    say "SMTP_PORT=587"
+    say "SMTP_USER="
+    say "SMTP_PASS="
+    say "RESEND_API_KEY="
   } > .env
   chmod 600 .env
   printf '%s' "$ADMIN_EMAIL" > .bootstrap-pending
