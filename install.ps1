@@ -37,8 +37,14 @@ foreach ($name in @('compose.image.yml','compose.manager.yml','compose.external.
   if ($local -and (Test-Path -LiteralPath $local)) { $content = [IO.File]::ReadAllText($local) }
   else {
     if ($RawBase -notmatch '^(https://[a-zA-Z0-9.-]+(:[0-9]+)?|http://(localhost|127\.0\.0\.1)(:[0-9]+)?)/[a-zA-Z0-9/._-]+$') { throw 'Alamat unduhan installer belum dikonfigurasi.' }
-    $content = (Invoke-WebRequest -UseBasicParsing -Uri "$RawBase/$name").Content
+    $download = Invoke-WebRequest -UseBasicParsing -Uri "$RawBase/$name"
+    # PowerShell returns byte[] for application/yaml. Casting that array to
+    # string writes "35 32 ..." instead of the actual Compose document.
+    $content = if ($download.Content -is [byte[]]) {
+      [System.Text.UTF8Encoding]::new($false,$true).GetString($download.Content)
+    } else { [string]$download.Content }
   }
+  if ($content -notmatch '(?m)^services:\s*$') { throw "File $name bukan konfigurasi Docker Compose yang valid. Periksa $RawBase/$name." }
   Write-InstallFile $name $content
 }
 $newInstall = !(Test-Path -LiteralPath (Join-Path $installPath '.env'))

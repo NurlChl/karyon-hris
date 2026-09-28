@@ -79,14 +79,9 @@ Instalasi lama dengan PostgreSQL 17 (volume `postgres_data`) tidak dipindahkan o
 
 ### Raw Compose / image
 
-Build dan push image milikmu lebih dahulu (ganti OWNER dan VERSION):
+Gunakan [panduan Dokploy Raw Compose](docs/DOKPLOY-RAW-COMPOSE.md) atau bagian **Instalasi Dokploy** pada dokumentasi website lisensi (`/docs#dokploy`). Panduan tersebut menyediakan YAML siap salin untuk image Community dan PostgreSQL internal Dokploy, daftar environment, pengaturan domain port 3000, seed pertama, backup, serta langkah update dengan redeploy.
 
-```sh
-docker build -t ghcr.io/OWNER/hris:VERSION .
-docker push ghcr.io/OWNER/hris:VERSION
-```
-
-Salin isi `compose.image.yml` ke editor Compose Dokploy. Isi `HRIS_IMAGE=ghcr.io/OWNER/hris:VERSION` dan seluruh environment wajib yang tercantum di Compose. Konfigurasikan akses registry jika image private. Jangan mengubah image menjadi public sebelum pemisahan Pro selesai. Untuk Pro, isi `HRIS_IMAGE` dengan image Pro dan konfigurasikan kredensial registry dari kode upgrade (lihat di atas); aktivasi lisensi tetap dari menu Lisensi & Paket.
+Jangan menempel `compose.image.yml` langsung tanpa mengubah jaringan dan port; file itu ditujukan untuk installer standalone yang mengikat port pada `127.0.0.1`. Raw Compose Dokploy tidak menyertakan installation manager. Menempel lisensi pada image Community tidak otomatis menarik image Pro; registry privat saat ini memakai token pull sementara, bukan kredensial registry pelanggan jangka panjang. Jangan memakai publisher token sebagai password pull pelanggan.
 
 ## Reverse proxy dan IP klien
 
