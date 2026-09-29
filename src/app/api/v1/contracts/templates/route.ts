@@ -17,7 +17,7 @@ export const GET = wrapRouteHandler(async (req) => {
 });
 
 const templateSchema = z.object({
-  id: z.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
+  id: z.union([z.string().regex(/^[0-9a-fA-F]{24}$/), z.literal(""), z.null()]).optional(),
   name: z.string().trim().min(3).max(80),
   type: z.enum(CONTRACT_TYPES.map((t) => t.value) as [string, ...string[]]),
   content: z.string().trim().min(20, "Isi dokumen terlalu pendek.").max(100_000),

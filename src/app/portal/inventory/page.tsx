@@ -167,7 +167,7 @@ export default function InventoryEmployeePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground dark:text-foreground transition-colors duration-200 p-6 md:p-12 font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-200 p-6 md:p-12 font-sans relative overflow-hidden">
       <div className="max-w-4xl mx-auto space-y-8 relative z-10">
         
         {/* Header */}
@@ -176,7 +176,7 @@ export default function InventoryEmployeePage() {
             <h1 className="text-display-sm md:text-display text-heading">
               Inventaris & Aset Saya
             </h1>
-            <p className="text-label text-muted dark:text-muted mt-1">
+            <p className="text-label text-muted mt-1">
               Daftar aset fasilitas kantor yang sedang Anda gunakan. Lakukan penandatanganan digital BAST untuk aset baru.
             </p>
           </div>
@@ -200,7 +200,7 @@ export default function InventoryEmployeePage() {
               return (
                 <div 
                   key={asg._id}
-                  className="bg-surface border border-line/60 dark:border-white/6 rounded-2xl p-6 flex flex-col justify-between space-y-4 hover:border-line-strong dark:hover:border-white/12 transition-all"
+                  className="bg-surface border border-line rounded-2xl p-6 flex flex-col justify-between space-y-4 hover:border-line-strong transition-all"
                 >
                   <div className="space-y-3">
                     <div className="flex justify-between items-start">
@@ -218,8 +218,8 @@ export default function InventoryEmployeePage() {
 
                     <div>
                       <span className="text-caption font-mono font-semibold text-muted uppercase tracking-wider">{item.code}</span>
-                      <h3 className="text-body-lg font-semibold text-foreground dark:text-foreground mt-0.5">{item.name}</h3>
-                      <p className="text-label text-muted dark:text-muted capitalize">Kategori: {item.category}</p>
+                      <h3 className="text-body-lg font-semibold text-foreground mt-0.5">{item.name}</h3>
+                      <p className="text-label text-muted capitalize">Kategori: {item.category}</p>
                     </div>
 
                     <div className="border-t border-line pt-3 flex items-center justify-between text-label text-muted">
@@ -233,7 +233,7 @@ export default function InventoryEmployeePage() {
                   {isPending ? (
                     <button
                       onClick={() => setSelectedAsg(asg)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-line-strong dark:border-white hover:bg-surface-2 dark:hover:bg-surface-2 cursor-pointer transition-all"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-transparent hover:bg-primary-hover cursor-pointer transition-all"
                     >
                       <FileText className="w-4 h-4" />
                       Tanda Tangan BAST Digital
@@ -252,16 +252,16 @@ export default function InventoryEmployeePage() {
 
         {/* Signature Digital Canvas Modal */}
         {selectedAsg && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
             <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
               <div className="flex justify-between items-center pb-4 border-b border-line">
                 <div>
-                  <h3 className="text-label font-semibold text-foreground dark:text-foreground uppercase">Tanda Tangan Elektronik (BAST)</h3>
+                  <h3 className="text-label font-semibold text-foreground uppercase">Tanda Tangan Elektronik (BAST)</h3>
                   <p className="text-label text-muted mt-0.5">Konfirmasi penerimaan barang: {selectedAsg.inventoryId.name}</p>
                 </div>
                 <button
                   onClick={() => setSelectedAsg(null)}
-                  className="p-1 rounded bg-surface-2 border border-line text-muted dark:text-muted hover:text-foreground cursor-pointer"
+                  className="p-1 rounded bg-surface-2 border border-line text-muted hover:text-foreground cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -285,7 +285,7 @@ export default function InventoryEmployeePage() {
                   </button>
                 </div>
 
-                <div className="text-label text-muted dark:text-muted leading-relaxed bg-surface-2 p-2.5 rounded border border-line">
+                <div className="text-label text-muted leading-relaxed bg-surface-2 p-2.5 rounded border border-line">
                   {signMethod === "draw" 
                     ? "Dengan menandatangani di bawah ini, saya menyatakan telah menerima aset dengan baik dan bertanggung jawab atas pemeliharaannya."
                     : "Silakan unggah pindaian (scan) / foto berkas BAST fisik yang sudah ditandatangani secara basah."
@@ -312,7 +312,7 @@ export default function InventoryEmployeePage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="border border-dashed border-line rounded-lg p-6 bg-surface-2/50 dark:bg-surface-2 flex flex-col items-center justify-center gap-3">
+                  <div className="border border-dashed border-line rounded-lg p-6 bg-surface-2 dark:bg-surface-2 flex flex-col items-center justify-center gap-3">
                     <input
                       type="file"
                       id="bast-file-upload"
@@ -322,7 +322,7 @@ export default function InventoryEmployeePage() {
                     />
                     <label
                       htmlFor="bast-file-upload"
-                      className="px-4 py-2 bg-primary text-label font-semibold text-primary-foreground rounded-lg cursor-pointer hover:bg-surface-2 dark:hover:bg-surface-2 transition-all border border-line"
+                      className="px-4 py-2 bg-primary text-label font-semibold text-primary-foreground rounded-lg cursor-pointer hover:bg-primary-hover transition-all border border-line"
                     >
                       Pilih Berkas PDF / Gambar
                     </label>
@@ -340,14 +340,14 @@ export default function InventoryEmployeePage() {
               <div className="border-t border-line pt-4 flex gap-3">
                 <button
                   onClick={signMethod === "draw" ? clearCanvas : () => { setUploadedFileBase64(""); setFileName(""); }}
-                  className="flex-1 py-2 rounded-lg border border-line text-label font-semibold text-foreground dark:text-muted hover:bg-surface-2 transition-all cursor-pointer text-center"
+                  className="flex-1 py-2 rounded-lg border border-line text-label font-semibold text-foreground hover:bg-surface-2 transition-all cursor-pointer text-center"
                 >
                   {signMethod === "draw" ? "Bersihkan" : "Hapus Berkas"}
                 </button>
                 <button
                   onClick={handleSubmitSignature}
                   disabled={submitting}
-                  className="flex-1 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-line-strong dark:border-white hover:bg-surface-2 dark:hover:bg-surface-2 transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="flex-1 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-transparent hover:bg-primary-hover transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer"
                 >
                   {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   Konfirmasi & Simpan

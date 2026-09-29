@@ -4,4 +4,6 @@ import { COMMUNITY_ENTITLEMENTS, type ProFeature } from "./features";
 export const EDITION: "community" | "pro" = "community";
 /** Community contains no private activation or entitlement implementation. */
 export async function getEntitlements(_force=false){return COMMUNITY_ENTITLEMENTS;}
-export async function requireProFeature(_feature:ProFeature){const {Forbidden}=await import("@/lib/guard");throw Forbidden("Fitur ini tersedia pada distribusi HRIS Pro dengan lisensi aktif.");}
+/** Kept for API parity with the Pro module; Community has no lease cache. */
+export function clearEntitlementCache(){}
+export async function requireProFeature(_feature:ProFeature){const {Forbidden}=await import("@/lib/guard");throw Forbidden("Fitur ini tersedia pada HRIS Pro dengan lisensi aktif. Aktifkan di menu Lisensi & Paket.");}

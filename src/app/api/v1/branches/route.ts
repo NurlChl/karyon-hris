@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { wrapRouteHandler, apiSuccess } from "@/lib/api";
-import { requireUser, requirePermission, parseBody, NotFound, Forbidden } from "@/lib/guard";
+import { requireUser, requirePermission, parseBody, BadRequest, Conflict, NotFound, Forbidden } from "@/lib/guard";
 import { logActivity } from "@/lib/audit/logger";
 import { getSettings } from "@/lib/settings";
 import Branch from "@/models/Branch";
@@ -10,7 +10,8 @@ import Employee from "@/models/Employee";
 const hhmm = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format jam harus HH:MM");
 
 const branchSchema = z.object({
-  id: z.string().regex(/^[0-9a-fA-F]{24}$/).optional(),
+  // The form sends null (or "") for a new branch; both mean "create".
+  id: z.union([z.string().regex(/^[0-9a-fA-F]{24}$/, "ID cabang tidak valid"), z.literal(""), z.null()]).optional(),
   name: z.string().trim().min(3, "Nama cabang minimal 3 karakter").max(120),
   address: z.string().trim().min(5, "Alamat minimal 5 karakter").max(400),
   // Indonesia spans roughly -11..6 latitude and 95..141 longitude, but the
@@ -56,17 +57,19 @@ export const POST = wrapRouteHandler(async (req) => {
     address: body.address,
     lat: body.lat,
     lng: body.lng,
-    radiusMeter: body.radiusMeter ?? Number(settings.default_geo_radius),
+    radiusMeter: body.radiusMeter ?? (Number(settings.default_geo_radius) || 15),
     workHours: body.workHours ?? { start: "09:00", end: "17:00" },
   };
 
   if (body.workHours && body.workHours.end <= body.workHours.start) {
     // Overnight shifts belong on a work schedule, not on branch opening hours,
     // which are only used as the fallback when no schedule is assigned.
-    return apiSuccess(
-      null,
-      "Jam tutup harus lebih besar dari jam buka. Untuk shift malam, gunakan menu Jadwal & Shift."
-    );
+    throw BadRequest("Jam tutup harus lebih besar dari jam buka. Untuk shift malam, gunakan menu Jadwal & Shift.");
+  }
+
+  const duplicate = await Branch.findOne({ name: body.name }).select("_id").lean<{ _id: unknown } | null>();
+  if (duplicate && String(duplicate._id) !== String(body.id ?? "")) {
+    throw Conflict(`Nama cabang "${body.name}" sudah dipakai. Gunakan nama lain.`);
   }
 
   if (body.id) {
@@ -91,7 +94,7 @@ export const POST = wrapRouteHandler(async (req) => {
     );
   }
 
-  if (await Branch.exists({})) throw Forbidden("Cabang tambahan memerlukan distribusi HRIS Pro.");
+  if (await Branch.exists({})) throw Forbidden("Edisi Community mendukung satu cabang. Cabang tambahan memerlukan HRIS Pro dengan lisensi aktif (menu Lisensi & Paket). Anda tetap dapat mengubah cabang yang ada.");
 
   const branch = await Branch.create(payload);
 

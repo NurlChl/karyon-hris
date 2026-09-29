@@ -70,10 +70,12 @@
 
   /* Semantics */
   --success: #0f7152;
+  --success-foreground: #ffffff;
   --success-soft: #e4f5ee;
   --warning: #9a5a0b;
   --warning-soft: #fdf1df;
   --danger: #c92a45;
+  --danger-foreground: #ffffff;
   --danger-soft: #fceaee;
   --info: #0e7490;
   --info-soft: #e2f2f6;
@@ -119,10 +121,12 @@
   --accent-foreground: #14142b;
 
   --success: #36c48f;
+  --success-foreground: #06140e;
   --success-soft: #10291f;
   --warning: #edb45a;
   --warning-soft: #2c2210;
   --danger: #ff7189;
+  --danger-foreground: #1a0509;
   --danger-soft: #2d1219;
   --info: #4cc2e0;
   --info-soft: #10262e;
@@ -158,10 +162,13 @@
   --color-accent-foreground: var(--accent-foreground);
 
   --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-overlay: var(--overlay);
   --color-danger-soft: var(--danger-soft);
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
@@ -349,7 +356,8 @@ input[type="month"]::-webkit-calendar-picker-indicator { cursor: pointer; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+  &:hover { border-color: var(--border-strong); box-shadow: var(--shadow-raise); }
 }
 
 @utility skeleton {

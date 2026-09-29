@@ -221,12 +221,12 @@ export default function DepartmentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between border-b border-line pb-4">
         <div>
-          <h1 className="text-title font-semibold text-foreground dark:text-foreground">Divisi & Jabatan</h1>
-          <p className="text-label text-muted dark:text-muted mt-1">Kelola departemen divisi kerja dan penamaan jenjang jabatan karyawan</p>
+          <h1 className="text-title font-semibold text-foreground">Divisi & Jabatan</h1>
+          <p className="text-label text-muted mt-1">Kelola departemen divisi kerja dan penamaan jenjang jabatan karyawan</p>
         </div>
         <button
           onClick={() => handleOpenForm()}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground border border-line text-body font-semibold cursor-pointer hover:bg-surface-2 dark:hover:bg-surface-2 active:scale-[0.98] transition-all"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground border border-transparent text-body font-semibold cursor-pointer hover:bg-primary-hover active:scale-[0.98] transition-all"
         >
           <Plus className="w-4 h-4" />
           Tambah {activeTab === "division" ? "Divisi" : "Jabatan"}
@@ -252,7 +252,7 @@ export default function DepartmentsPage() {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center text-muted dark:text-muted">
+        <div className="h-64 flex items-center justify-center text-muted">
           <Loader2 className="w-8 h-8 animate-spin text-foreground" />
         </div>
       ) : items.length === 0 ? (
@@ -262,10 +262,10 @@ export default function DepartmentsPage() {
           <p className="text-label mt-1">Tambahkan data master baru untuk melengkapi data jabatan operasional karyawan.</p>
         </div>
       ) : (
-        <div className="bg-surface border border-line/60 dark:border-white/6 rounded-xl overflow-hidden">
+        <div className="bg-surface border border-line rounded-xl overflow-hidden">
           <table className="w-full text-left text-label border-collapse">
             <thead>
-              <tr className="border-b border-line bg-surface-2 text-muted dark:text-muted">
+              <tr className="border-b border-line bg-surface-2 text-muted">
                 <th className="p-4 font-semibold">Nama {activeTab === "division" ? "Divisi / Departemen" : "Jabatan Kerja"}</th>
                 {activeTab === "division" ? (
                   <>
@@ -280,34 +280,34 @@ export default function DepartmentsPage() {
             </thead>
             <tbody>
               {items.map((item, idx) => (
-                <tr key={item._id} className="border-b border-line hover:bg-surface-2/50 dark:hover:bg-white/1 transition-all">
-                  <td className="p-4 font-semibold text-foreground dark:text-foreground text-body">{item.name}</td>
+                <tr key={item._id} className="border-b border-line hover:bg-surface-2 transition-all">
+                  <td className="p-4 font-semibold text-foreground text-body">{item.name}</td>
                   {activeTab === "division" ? (
                     <>
-                      <td className="p-4 text-muted dark:text-muted font-medium">
+                      <td className="p-4 text-muted font-medium">
                         {refName(item.branchId) || "-"}
                       </td>
-                      <td className="p-4 text-muted dark:text-muted font-medium">
+                      <td className="p-4 text-muted font-medium">
                         {typeof item.headId === "object" && item.headId
                           ? `${item.headId.name} (${item.headId.employeeId ?? "-"})`
                           : "-"}
                       </td>
                     </>
                   ) : (
-                    <td className="p-4 text-muted dark:text-muted font-medium">
+                    <td className="p-4 text-muted font-medium">
                       {refName(item.divisionId) || "-"}
                     </td>
                   )}
                   <td className="p-4 text-right flex items-center justify-end gap-2">
                     <button
                       onClick={() => handleOpenForm(item)}
-                      className="p-1.5 rounded hover:bg-white/4 text-muted dark:text-muted hover:text-foreground transition-all cursor-pointer"
+                      className="p-1.5 rounded hover:bg-surface-2 text-muted hover:text-foreground transition-all cursor-pointer"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteItem(item._id)}
-                      className="p-1.5 rounded hover:bg-danger-soft text-muted dark:text-muted hover:text-danger transition-all cursor-pointer"
+                      className="p-1.5 rounded hover:bg-danger-soft text-muted hover:text-danger transition-all cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -325,10 +325,10 @@ export default function DepartmentsPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center font-sans">
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleCloseForm}
-              className="absolute inset-0 bg-black"
+              className="absolute inset-0 bg-overlay"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -337,12 +337,12 @@ export default function DepartmentsPage() {
               className="bg-surface border border-line shadow-[var(--shadow-pop)] rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto relative z-10 p-6"
             >
               <div className="flex items-center justify-between border-b border-line pb-4 mb-4">
-                <h3 className="text-body-lg font-semibold text-foreground dark:text-foreground">
+                <h3 className="text-body-lg font-semibold text-foreground">
                   {selectedId ? `Edit ${activeTab === "division" ? "Divisi" : "Jabatan"}` : `Tambah ${activeTab === "division" ? "Divisi" : "Jabatan"} Baru`}
                 </h3>
                 <button
                   onClick={handleCloseForm}
-                  className="p-1 rounded bg-surface border border-line text-muted dark:text-muted hover:text-foreground cursor-pointer"
+                  className="p-1 rounded bg-surface border border-line text-muted hover:text-foreground cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -364,7 +364,7 @@ export default function DepartmentsPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={activeTab === "division" ? "e.g. Finance & Accounting" : "e.g. Senior Software Engineer"}
-                    className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label"
+                    className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label"
                   />
                 </div>
 
@@ -411,7 +411,7 @@ export default function DepartmentsPage() {
                         <Select
                           value={type}
                           onChange={(e) => setType(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
+                          className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
                         >
                           <option value="Full-Time">Full-Time</option>
                           <option value="Part-Time">Part-Time</option>
@@ -426,7 +426,7 @@ export default function DepartmentsPage() {
                         <Select
                           value={status}
                           onChange={(e) => setStatus(e.target.value as "active" | "inactive")}
-                          className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
+                          className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
                         >
                           <option value="active">Aktif (Buka Lowongan)</option>
                           <option value="inactive">Nonaktif (Tutup Lowongan)</option>
@@ -442,7 +442,7 @@ export default function DepartmentsPage() {
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="e.g. Jakarta, Remote, Hybrid"
-                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label"
                       />
                     </div>
 
@@ -453,7 +453,7 @@ export default function DepartmentsPage() {
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Deskripsikan penawaran/informasi umum mengenai lowongan ini..."
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label resize-none"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label resize-none"
                       />
                     </div>
 
@@ -464,7 +464,7 @@ export default function DepartmentsPage() {
                         onChange={(e) => setJobdesk(e.target.value)}
                         placeholder="Sebutkan tanggung jawab pekerjaan (satu per baris)..."
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label resize-none"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label resize-none"
                       />
                     </div>
 
@@ -475,7 +475,7 @@ export default function DepartmentsPage() {
                         onChange={(e) => setRequirements(e.target.value)}
                         placeholder="Sebutkan persyaratan pelamar (satu per baris)..."
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label resize-none"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder:text-subtle text-label resize-none"
                       />
                     </div>
                   </>
@@ -485,14 +485,14 @@ export default function DepartmentsPage() {
                   <button
                     type="button"
                     onClick={handleCloseForm}
-                    className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-muted dark:text-muted hover:text-foreground hover:bg-surface cursor-pointer transition-all"
+                    className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-muted hover:text-foreground hover:bg-surface-2 hover:border-line-strong cursor-pointer transition-all"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground border border-line text-label font-semibold cursor-pointer hover:bg-surface-2 dark:hover:bg-surface-2 disabled:opacity-50 active:scale-[0.98] transition-all flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground border border-transparent text-label font-semibold cursor-pointer hover:bg-primary-hover disabled:opacity-50 active:scale-[0.98] transition-all flex items-center gap-1.5"
                   >
                     {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     Simpan

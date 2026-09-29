@@ -341,11 +341,11 @@ export default function InventoryAdminPage() {
       {/* Title Header */}
       <div className="flex items-center justify-between border-b border-line pb-6">
         <div>
-          <h1 className="text-title font-semibold text-foreground dark:text-foreground flex items-center gap-2">
+          <h1 className="text-title font-semibold text-foreground flex items-center gap-2">
             <Package className="w-5 h-5 text-foreground" />
             Manajemen Inventaris & Aset GA
           </h1>
-          <p className="text-label text-muted dark:text-muted mt-1">
+          <p className="text-label text-muted mt-1">
             Kelola master inventaris kantor, serah terima BAST digital, dan pemantauan kepemilikan barang karyawan.
           </p>
         </div>
@@ -358,14 +358,14 @@ export default function InventoryAdminPage() {
               setAuditNotes("");
               setIsAuditOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success dark:bg-success text-label font-semibold text-white cursor-pointer hover:bg-success transition-all border border-success"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-success text-label font-semibold text-success-foreground cursor-pointer hover:brightness-110 transition-all border border-success"
           >
             <RefreshCcw className="w-4 h-4" />
             Pindai & Audit Fisik
           </button>
           <button
             onClick={() => handleOpenForm(null)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground cursor-pointer hover:bg-surface-2 dark:hover:bg-surface-2 transition-all border border-line-strong dark:border-white"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground cursor-pointer hover:bg-primary-hover transition-all border border-transparent"
           >
             <Plus className="w-4 h-4" />
             Tambah Aset Baru
@@ -374,7 +374,7 @@ export default function InventoryAdminPage() {
       </div>
 
       {/* Filter / Search Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-surface border border-line/60 dark:border-white/6 p-4 rounded-xl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-surface border border-line p-4 rounded-xl">
         <div>
           <label className="text-caption font-semibold text-foreground uppercase tracking-wider block mb-1.5">Cari Kode / Nama</label>
           <div className="relative">
@@ -386,7 +386,7 @@ export default function InventoryAdminPage() {
                 setPage(1);
               }}
               placeholder="Cari MacBook, AST-LAP-001..."
-              className="w-full pl-9 pr-4 py-2 rounded-lg bg-surface-2 border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label placeholder:text-subtle"
+              className="w-full pl-9 pr-4 py-2 rounded-lg bg-surface-2 border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label placeholder:text-subtle"
             />
             <Search className="w-3.5 h-3.5 text-subtle absolute left-3 top-3" />
           </div>
@@ -399,7 +399,7 @@ export default function InventoryAdminPage() {
               setCategoryFilter(e.target.value);
               setPage(1);
             }}
-            className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label"
+            className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label"
           >
             <option value="">Semua Kategori</option>
             {categories.map(cat => (
@@ -420,10 +420,10 @@ export default function InventoryAdminPage() {
           <p className="text-body font-medium">Belum ada aset terdaftar</p>
         </div>
       ) : (
-        <div className="bg-surface border border-line/60 dark:border-white/6 rounded-xl overflow-hidden">
+        <div className="bg-surface border border-line rounded-xl overflow-hidden">
           <table className="w-full text-left text-label border-collapse">
             <thead>
-              <tr className="border-b border-line bg-surface-2/50 dark:bg-surface-2 text-foreground dark:text-muted">
+              <tr className="border-b border-line bg-surface-2 dark:bg-surface-2 text-foreground">
                 <th className="p-4 font-semibold">Kode Aset</th>
                 <th className="p-4 font-semibold">Nama Barang</th>
                 <th className="p-4 font-semibold">Kategori</th>
@@ -436,15 +436,15 @@ export default function InventoryAdminPage() {
               {filteredAssets.map((asset) => {
                 const isAssigned = asset.assignment && (asset.assignment.status === "active" || asset.assignment.status === "pending_handover");
                 return (
-                  <tr key={asset._id} className="border-b border-line hover:bg-surface-2/50 dark:hover:bg-white/1 transition-all">
-                    <td className="p-4 font-mono font-semibold text-foreground dark:text-muted">
+                  <tr key={asset._id} className="border-b border-line hover:bg-surface-2 transition-all">
+                    <td className="p-4 font-mono font-semibold text-foreground">
                       <div>{asset.code}</div>
                       <div 
                         className="h-5 w-28 mt-1 opacity-80"
                         dangerouslySetInnerHTML={{ __html: generateCode39Svg(asset.code).svg }}
                       />
                     </td>
-                    <td className="p-4 font-semibold text-foreground dark:text-foreground">{asset.name}</td>
+                    <td className="p-4 font-semibold text-foreground">{asset.name}</td>
                     <td className="p-4 capitalize text-foreground">{asset.category}</td>
                     <td className="p-4">
                       <span className={`px-2 py-0.5 rounded-sm font-semibold border ${
@@ -460,10 +460,10 @@ export default function InventoryAdminPage() {
                     <td className="p-4">
                       {isAssigned ? (
                         <div className="space-y-1">
-                          <div className="font-semibold text-foreground dark:text-foreground">
+                          <div className="font-semibold text-foreground">
                             {asset.assignment?.employeeId?.name || "Karyawan"}
                           </div>
-                          <div className="flex flex-wrap items-center gap-1.5 text-caption uppercase font-semibold text-muted dark:text-muted">
+                          <div className="flex flex-wrap items-center gap-1.5 text-caption uppercase font-semibold text-muted">
                             <span>{asset.assignment?.employeeId?.NIK}</span>
                             <span>&bull;</span>
                             <span className={`px-1.5 py-0.2 rounded border ${
@@ -490,7 +490,7 @@ export default function InventoryAdminPage() {
                     <td className="p-4 text-right flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => handleOpenForm(asset)}
-                        className="p-1.5 rounded hover:bg-surface-2 dark:hover:bg-white/4 text-muted dark:text-muted hover:text-foreground transition-all cursor-pointer"
+                        className="p-1.5 rounded hover:bg-surface-2 text-muted hover:text-foreground transition-all cursor-pointer"
                         title="Edit Info Aset"
                       >
                         <Edit className="w-4 h-4" />
@@ -498,7 +498,7 @@ export default function InventoryAdminPage() {
                       <button
                         onClick={() => handleOpenAssign(asset)}
                         disabled={asset.condition === "lost"}
-                        className="p-1.5 rounded hover:bg-surface-2 dark:hover:bg-white/4 text-muted dark:text-muted hover:text-foreground transition-all cursor-pointer disabled:opacity-30"
+                        className="p-1.5 rounded hover:bg-surface-2 text-muted hover:text-foreground transition-all cursor-pointer disabled:opacity-30"
                         title="Tugaskan Aset"
                       >
                         <UserPlus className="w-4 h-4" />
@@ -506,7 +506,7 @@ export default function InventoryAdminPage() {
                       {isAssigned && (
                         <button
                           onClick={() => handleReturnAsset(asset)}
-                          className="p-1.5 rounded hover:bg-surface-2 dark:hover:bg-white/4 text-danger hover:text-danger transition-all cursor-pointer"
+                          className="p-1.5 rounded hover:bg-surface-2 text-danger hover:text-danger transition-all cursor-pointer"
                           title="Kembalikan Aset (Return)"
                         >
                           <RefreshCcw className="w-4 h-4" />
@@ -537,16 +537,16 @@ export default function InventoryAdminPage() {
 
       {/* Asset Form Drawer Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-overlay backdrop-blur-xs">
           <div className="w-full max-w-lg h-full bg-surface border-l border-line relative z-10 shadow-[var(--shadow-pop)] p-6 flex flex-col justify-between overflow-y-auto">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-line mb-6">
-                <h3 className="text-body font-semibold text-foreground dark:text-foreground uppercase">
+                <h3 className="text-body font-semibold text-foreground uppercase">
                   {selectedAsset ? "Edit Detail Inventaris" : "Tambah Inventaris Aset Baru"}
                 </h3>
                 <button
                   onClick={() => setIsFormOpen(false)}
-                  className="p-1 rounded bg-surface-2 border border-line text-muted dark:text-muted hover:text-foreground cursor-pointer"
+                  className="p-1 rounded bg-surface-2 border border-line text-muted hover:text-foreground cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -568,7 +568,7 @@ export default function InventoryAdminPage() {
 
               <form onSubmit={handleSaveAsset} className="space-y-4 text-label">
                 <div>
-                  <label className="block text-caption font-semibold text-foreground dark:text-muted uppercase tracking-wider mb-1.5">Kode Aset (Unique)</label>
+                  <label className="block text-caption font-semibold text-foreground uppercase tracking-wider mb-1.5">Kode Aset (Unique)</label>
                   <input
                     type="text"
                     required
@@ -576,18 +576,18 @@ export default function InventoryAdminPage() {
                     onChange={(e) => setFormCode(e.target.value)}
                     disabled={!!selectedAsset}
                     placeholder="AST-LAP-001, AST-MBL-012"
-                    className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-surface border border-line dark:border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label disabled:opacity-50"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-surface border border-line dark:border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label disabled:opacity-50"
                   />
                 </div>
                 <div>
-                  <label className="block text-caption font-semibold text-foreground dark:text-muted uppercase tracking-wider mb-1.5">Nama Barang / Spesifikasi</label>
+                  <label className="block text-caption font-semibold text-foreground uppercase tracking-wider mb-1.5">Nama Barang / Spesifikasi</label>
                   <input
                     type="text"
                     required
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="MacBook Pro M2 16GB, Honda Vario B 1234 XYZ"
-                    className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-surface border border-line dark:border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-surface border border-line dark:border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -601,11 +601,11 @@ export default function InventoryAdminPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-caption font-semibold text-foreground dark:text-muted uppercase tracking-wider mb-1.5">Kondisi Aset</label>
+                    <label className="block text-caption font-semibold text-foreground uppercase tracking-wider mb-1.5">Kondisi Aset</label>
                     <Select
                       value={formCondition}
                       onChange={(e) => setFormCondition(e.target.value as "good" | "damaged" | "lost")}
-                      className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-surface border border-line dark:border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label"
+                      className="w-full px-3 py-2 rounded-lg bg-surface-2 dark:bg-surface border border-line dark:border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-white text-label"
                     >
                       <option value="good">Baik</option>
                       <option value="damaged">Rusak</option>
@@ -620,7 +620,7 @@ export default function InventoryAdminPage() {
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-foreground dark:text-muted hover:bg-surface-2 transition-all"
+                className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-foreground hover:bg-surface-2 transition-all"
               >
                 Batal
               </button>
@@ -628,7 +628,7 @@ export default function InventoryAdminPage() {
                 type="button"
                 onClick={handleSaveAsset}
                 disabled={submitting}
-                className="px-4 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-line-strong dark:border-white hover:bg-surface-2 dark:hover:bg-surface-2 transition-all flex items-center gap-1.5 disabled:opacity-50"
+                className="px-4 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-transparent hover:bg-primary-hover transition-all flex items-center gap-1.5 disabled:opacity-50"
               >
                 {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 {selectedAsset ? "Simpan Perubahan" : "Tambah Aset"}
@@ -640,13 +640,13 @@ export default function InventoryAdminPage() {
 
       {/* Assign Asset Modal */}
       {isAssignOpen && selectedAsset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
           <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
             <div className="flex justify-between items-center pb-4 border-b border-line">
-              <h3 className="text-body font-semibold text-foreground dark:text-foreground uppercase">Tugaskan Aset Inventaris</h3>
+              <h3 className="text-body font-semibold text-foreground uppercase">Tugaskan Aset Inventaris</h3>
               <button
                 onClick={() => setIsAssignOpen(false)}
-                className="p-1 rounded bg-surface-2 border border-line text-muted dark:text-muted hover:text-foreground transition-all cursor-pointer"
+                className="p-1 rounded bg-surface-2 border border-line text-muted hover:text-foreground transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -654,8 +654,8 @@ export default function InventoryAdminPage() {
 
             <div className="py-4 space-y-4 text-label">
               <div className="p-3 bg-surface-2 rounded-lg border border-line space-y-1">
-                <div className="font-semibold text-foreground dark:text-foreground">Aset: {selectedAsset.name}</div>
-                <div className="text-label text-muted dark:text-muted">Kode: {selectedAsset.code} &bull; Kategori: {selectedAsset.category}</div>
+                <div className="font-semibold text-foreground">Aset: {selectedAsset.name}</div>
+                <div className="text-label text-muted">Kode: {selectedAsset.code} &bull; Kategori: {selectedAsset.category}</div>
               </div>
 
               {errorMsg && (
@@ -687,14 +687,14 @@ export default function InventoryAdminPage() {
             <div className="border-t border-line pt-4 flex justify-end gap-3">
               <button
                 onClick={() => setIsAssignOpen(false)}
-                className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-foreground dark:text-muted hover:bg-surface-2 transition-all"
+                className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-foreground hover:bg-surface-2 transition-all"
               >
                 Batal
               </button>
               <button
                 onClick={handleAssignAsset}
                 disabled={submitting || !assignEmployeeId}
-                className="px-4 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-line-strong dark:border-white hover:bg-surface-2 dark:hover:bg-surface-2 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 rounded-lg bg-primary text-label font-semibold text-primary-foreground border border-transparent hover:bg-primary-hover transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
               >
                 {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 Tugaskan Aset
@@ -706,13 +706,13 @@ export default function InventoryAdminPage() {
 
       {/* Signature Viewer Modal */}
       {signatureModalUrl && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+        <div className="fixed inset-0 z-55 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
           <div className="w-full max-w-sm bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
             <div className="flex justify-between items-center pb-4 border-b border-line">
-              <h3 className="text-label font-semibold text-foreground dark:text-foreground uppercase">Tanda Tangan Serah Terima (BAST)</h3>
+              <h3 className="text-label font-semibold text-foreground uppercase">Tanda Tangan Serah Terima (BAST)</h3>
               <button
                 onClick={() => setSignatureModalUrl(null)}
-                className="p-1 rounded bg-surface-2 border border-line text-muted dark:text-muted hover:text-foreground cursor-pointer"
+                className="p-1 rounded bg-surface-2 border border-line text-muted hover:text-foreground cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -728,7 +728,7 @@ export default function InventoryAdminPage() {
             </div>
             <button
               onClick={() => setSignatureModalUrl(null)}
-              className="w-full py-2 rounded-lg border border-line text-label font-semibold text-foreground dark:text-muted hover:bg-surface-2 cursor-pointer transition-all"
+              className="w-full py-2 rounded-lg border border-line text-label font-semibold text-foreground hover:bg-surface-2 cursor-pointer transition-all"
             >
               Tutup
             </button>
@@ -737,16 +737,16 @@ export default function InventoryAdminPage() {
       )}
       {/* Monthly Physical Audit Scan Modal */}
       {isAuditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4 animate-fade-in">
           <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-4 border-b border-line">
-              <h3 className="text-body font-semibold text-foreground dark:text-foreground uppercase">Audit Fisik Bulanan Inventaris</h3>
+              <h3 className="text-body font-semibold text-foreground uppercase">Audit Fisik Bulanan Inventaris</h3>
               <button
                 onClick={() => {
                   setIsAuditOpen(false);
                   setAuditAsset(null);
                 }}
-                className="p-1 rounded bg-surface-2 border border-line text-muted dark:text-muted hover:text-foreground transition-all cursor-pointer"
+                className="p-1 rounded bg-surface-2 border border-line text-muted hover:text-foreground transition-all cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -760,12 +760,12 @@ export default function InventoryAdminPage() {
                   value={scanInputCode}
                   onChange={(e) => setScanInputCode(e.target.value)}
                   placeholder="Scan barcode / Ketik kode aset..."
-                  className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label placeholder:text-subtle"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label placeholder:text-subtle"
                 />
               </div>
               <button
                 type="submit"
-                className="px-4 py-2 bg-primary text-label font-semibold text-primary-foreground rounded-lg hover:bg-surface-2 dark:hover:bg-surface-2 transition-all border border-line cursor-pointer"
+                className="px-4 py-2 bg-primary text-label font-semibold text-primary-foreground rounded-lg hover:bg-primary-hover transition-all border border-line cursor-pointer"
               >
                 Temukan
               </button>
@@ -787,7 +787,7 @@ export default function InventoryAdminPage() {
 
             {/* Simulated Live Scanner Feed */}
             {!auditAsset && !successMsg && (
-              <div className="relative border border-line rounded-lg overflow-hidden h-40 bg-surface-2 flex flex-col items-center justify-center text-white/60">
+              <div className="relative border border-line rounded-lg overflow-hidden h-40 bg-surface-2 flex flex-col items-center justify-center text-muted">
                 <div className="absolute inset-x-0 h-[2px] bg-danger top-1/2 -translate-y-1/2 animate-[pulse_1.5s_infinite] shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
                 <div className="border border-success/40 w-64 h-24 rounded flex items-center justify-center border-dashed relative">
                   <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-success" />
@@ -804,17 +804,17 @@ export default function InventoryAdminPage() {
             {auditAsset && (
               <form onSubmit={handleSaveAudit} className="space-y-4 text-label">
                 <div className="p-3 bg-surface-2 rounded-lg border border-line space-y-1.5">
-                  <div className="font-semibold text-foreground dark:text-foreground">Aset: {auditAsset.name}</div>
-                  <div className="text-label text-muted dark:text-muted">Kode: {auditAsset.code} &bull; Kategori: {auditAsset.category}</div>
-                  <div className="text-label text-muted dark:text-muted">Kondisi Saat Ini: <span className="capitalize font-semibold">{auditAsset.condition}</span></div>
+                  <div className="font-semibold text-foreground">Aset: {auditAsset.name}</div>
+                  <div className="text-label text-muted">Kode: {auditAsset.code} &bull; Kategori: {auditAsset.category}</div>
+                  <div className="text-label text-muted">Kondisi Saat Ini: <span className="capitalize font-semibold">{auditAsset.condition}</span></div>
                 </div>
 
                 <div>
-                  <label className="block text-caption font-semibold text-foreground dark:text-muted uppercase tracking-wider mb-1.5">Kondisi Hasil Pemeriksaan</label>
+                  <label className="block text-caption font-semibold text-foreground uppercase tracking-wider mb-1.5">Kondisi Hasil Pemeriksaan</label>
                   <Select
                     value={auditCondition}
                     onChange={(e) => setAuditCondition(e.target.value as "good" | "damaged" | "lost")}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
                   >
                     <option value="good">Baik</option>
                     <option value="damaged">Rusak</option>
@@ -823,13 +823,13 @@ export default function InventoryAdminPage() {
                 </div>
 
                 <div>
-                  <label className="block text-caption font-semibold text-foreground dark:text-muted uppercase tracking-wider mb-1.5">Catatan Pemeriksa (Auditor)</label>
+                  <label className="block text-caption font-semibold text-foreground uppercase tracking-wider mb-1.5">Catatan Pemeriksa (Auditor)</label>
                   <textarea
                     rows={3}
                     value={auditNotes}
                     onChange={(e) => setAuditNotes(e.target.value)}
                     placeholder="Contoh: Layar lecet ringan, adaptor hilang..."
-                    className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label"
                   />
                 </div>
 
@@ -837,14 +837,14 @@ export default function InventoryAdminPage() {
                   <button
                     type="button"
                     onClick={() => setAuditAsset(null)}
-                    className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-foreground dark:text-muted hover:bg-surface-2 transition-all cursor-pointer"
+                    className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-foreground hover:bg-surface-2 transition-all cursor-pointer"
                   >
                     Reset Pindai
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-4 py-2 bg-success hover:bg-success text-label font-semibold text-white rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                    className="px-4 py-2 bg-success hover:brightness-110 text-label font-semibold text-success-foreground rounded-lg transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                   >
                     {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     Simpan Laporan Audit

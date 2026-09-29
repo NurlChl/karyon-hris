@@ -7,6 +7,7 @@ import { signOut, useSession } from "next-auth/react";
 import {
   BookOpen,
   ChevronDown,
+  KeyRound,
   LogOut,
   Menu,
   Moon,
@@ -18,6 +19,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { NotificationBell } from "./NotificationBell";
 import { cn, ICON_STROKE, type IconType } from "@/components/ui";
 import { TIMEZONE } from "@/lib/time";
+import { useLicense } from "@/lib/use-license";
 
 export interface NavItem {
   name: string;
@@ -198,6 +200,29 @@ function MenuLink({
   );
 }
 
+/**
+ * Tells the superadmin, on every admin page, that Pro features are paused
+ * because the license lapsed — the app keeps working as Community meanwhile.
+ */
+function LicenseBanner() {
+  const { license } = useLicense();
+  if (!license || license.edition !== "pro" || !["expired", "grace"].includes(license.status)) return null;
+  const expired = license.status === "expired";
+  return (
+    <div role="status" className={cn("mb-6 flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] border px-4 py-3 text-body-sm", expired ? "bg-danger-soft border-danger/25 text-danger" : "bg-warning-soft border-warning/25 text-warning")}>
+      <KeyRound className="w-4 h-4 shrink-0" strokeWidth={ICON_STROKE} />
+      <span className="flex-1 min-w-0 text-foreground/80">
+        {expired
+          ? "Lisensi Pro berakhir — aplikasi berjalan dengan fitur Community, data tetap aman."
+          : "Server lisensi belum terjangkau — fitur Pro tetap aktif selama masa tenggang."}
+      </span>
+      <Link href="/admin/license" className="font-semibold underline-offset-2 hover:underline">
+        {expired ? "Perpanjang atau ganti lisensi" : "Periksa status"}
+      </Link>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /* Shell                                                               */
 /* ------------------------------------------------------------------ */
@@ -271,10 +296,10 @@ export function AppShell({
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "group relative flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-control)] text-body-sm transition-colors",
+                      "group relative flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-control)] text-body-sm transition-[color,background-color,transform] duration-200 ease-out",
                       active
                         ? "bg-primary-soft text-primary font-semibold"
-                        : "text-muted hover:text-foreground hover:bg-surface-2 font-medium"
+                        : "text-muted hover:text-foreground hover:bg-surface-2 hover:translate-x-0.5 font-medium"
                     )}
                   >
                     {/* A short rule at the left edge marks the active item even
@@ -380,7 +405,10 @@ export function AppShell({
         </header>
 
         <main id="main-content" className="flex-1 p-5 md:p-7 lg:p-8 min-w-0">
-          <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+          <div key={pathname} className="mx-auto w-full max-w-[1400px] animate-fade-up">
+            {role === "SUPERADMIN" && pathname !== "/admin/license" && <LicenseBanner />}
+            {children}
+          </div>
         </main>
       </div>
     </div>

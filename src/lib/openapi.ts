@@ -1001,6 +1001,14 @@ const BASE_GROUPS: ApiGroup[] = [
       },
       {
         method: "GET",
+        path: "/complaints/attachment",
+        summary: "Unduh lampiran pengaduan anonim",
+        description: "Akses lampiran tersimpan tanpa membuka URL penyimpanan. Hanya pelapor atau penangan dalam lingkupnya.",
+        auth: "Pelapor atau peran tujuan pengaduan",
+        params: [{ name: "id", in: "query", description: "ID pengaduan (24 karakter heksadesimal)." }],
+      },
+      {
+        method: "GET",
         path: "/dashboard",
         summary: "Ringkasan dashboard",
         description: "Kehadiran hari ini, tren 14 hari, kontrak kedaluwarsa, ulang tahun, dan hari libur.",

@@ -122,7 +122,7 @@ export function Pagination({
                 className={cn(
                   "min-w-8 h-8 px-2 rounded-[var(--radius-control)] text-body-sm tabular-nums transition-colors",
                   item === page
-                    ? "bg-primary text-white font-semibold"
+                    ? "bg-primary text-primary-foreground font-semibold"
                     : "text-muted hover:bg-surface-2 hover:text-foreground"
                 )}
               >

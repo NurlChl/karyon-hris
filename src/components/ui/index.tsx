@@ -38,8 +38,8 @@ const buttonVariants: Record<ButtonVariant, string> = {
   secondary: "bg-surface text-foreground border border-line hover:bg-surface-2 hover:border-line-strong",
   outline: "bg-transparent text-foreground border border-line-strong hover:bg-surface-2",
   ghost: "bg-transparent text-muted hover:text-foreground hover:bg-surface-2",
-  danger: "bg-danger text-white hover:brightness-110",
-  success: "bg-success text-white hover:brightness-110",
+  danger: "bg-danger text-danger-foreground hover:brightness-110",
+  success: "bg-success text-success-foreground hover:brightness-110",
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
@@ -74,7 +74,8 @@ export function Button({
       disabled={disabled || loading}
       className={cn(
         "inline-flex items-center rounded-[var(--radius-control)] font-semibold tracking-[-0.01em]",
-        "transition-[background-color,border-color,filter,opacity] duration-150",
+        "transition-[background-color,border-color,color,filter,opacity,box-shadow,transform] duration-200 ease-out",
+        "enabled:active:scale-[0.97] enabled:hover:shadow-[var(--shadow-raise)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]",
         "disabled:opacity-55 disabled:cursor-not-allowed cursor-pointer whitespace-nowrap select-none",
         buttonVariants[variant],
         buttonSizes[size],
@@ -764,7 +765,7 @@ export function Td({ children, className }: { children?: React.ReactNode; classN
 
 /** Row wrapper that gives every table the same hover affordance. */
 export function Tr({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <tr className={cn("hover:bg-surface-2/50 transition-colors", className)}>{children}</tr>;
+  return <tr className={cn("hover:bg-surface-2 transition-colors", className)}>{children}</tr>;
 }
 
 /* ------------------------------------------------------------------ */

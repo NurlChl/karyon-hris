@@ -759,10 +759,10 @@ function EmployeesView() {
           <div className="fixed inset-0 z-50 flex items-center justify-end">
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={handleCloseForm}
-              className="absolute inset-0 bg-black"
+              className="absolute inset-0 bg-overlay"
             />
             <motion.div
               initial={{ x: "100%" }}
@@ -773,12 +773,12 @@ function EmployeesView() {
             >
               <div className="space-y-6">
                 <div className="flex items-center justify-between border-b border-line pb-4">
-                  <h2 className="text-body-lg font-semibold text-foreground dark:text-foreground">
+                  <h2 className="text-body-lg font-semibold text-foreground">
                     {selectedId ? "Edit Profil Karyawan" : "Registrasi Karyawan Baru"}
                   </h2>
                   <button
                     onClick={handleCloseForm}
-                    className="p-1 rounded bg-surface border border-line text-muted dark:text-muted hover:text-foreground cursor-pointer"
+                    className="p-1 rounded bg-surface border border-line text-muted hover:text-foreground cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -813,18 +813,18 @@ function EmployeesView() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <label className="font-semibold">Nama Lengkap (Sesuai KTP)</label>
-                        <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. John Doe" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="e.g. John Doe" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">Nomor NIK KTP (Enkripsi)</label>
-                        <input type="text" required value={nik} onChange={e => setNik(e.target.value)} placeholder="16 digit NIK" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={nik} onChange={e => setNik(e.target.value)} placeholder="16 digit NIK" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <label className="font-semibold">Tempat Lahir</label>
-                        <input type="text" required value={birthPlace} onChange={e => setBirthPlace(e.target.value)} placeholder="e.g. Jakarta" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={birthPlace} onChange={e => setBirthPlace(e.target.value)} placeholder="e.g. Jakarta" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">Tanggal Lahir</label>
@@ -842,11 +842,11 @@ function EmployeesView() {
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">Agama</label>
-                        <input type="text" required value={religion} onChange={e => setReligion(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={religion} onChange={e => setReligion(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">Status Pernikahan</label>
-                        <input type="text" required value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={maritalStatus} onChange={e => setMaritalStatus(e.target.value)} className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                     </div>
                   </div>
@@ -859,17 +859,17 @@ function EmployeesView() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <label className="font-semibold">No. HP / WhatsApp</label>
-                        <input type="text" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="08xxxxxx" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={phone} onChange={e => setPhone(e.target.value)} placeholder="08xxxxxx" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">Email Pribadi</label>
-                        <input type="email" required value={personalEmail} onChange={e => setPersonalEmail(e.target.value)} placeholder="john@gmail.com" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="email" required value={personalEmail} onChange={e => setPersonalEmail(e.target.value)} placeholder="john@gmail.com" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 mt-3">
                       <div className="space-y-1">
                         <label className="font-semibold">Email Kantor (Email Login)</label>
-                        <input type="email" required value={officeEmail} onChange={e => setOfficeEmail(e.target.value)} placeholder="john@perusahaan.com" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="email" required value={officeEmail} onChange={e => setOfficeEmail(e.target.value)} placeholder="john@perusahaan.com" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold flex items-center justify-between">
@@ -883,7 +883,7 @@ function EmployeesView() {
                           value={password}
                           onChange={e => setPassword(e.target.value)}
                           placeholder={selectedId ? "Ubah kata sandi..." : "Tentukan kata sandi login..."}
-                          className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label"
+                          className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label"
                         />
                       </div>
                     </div>
@@ -898,8 +898,8 @@ function EmployeesView() {
                       <div className="p-3 bg-surface-2 rounded-[var(--radius)] border border-line space-y-3">
                         <span className="font-semibold text-foreground text-label uppercase tracking-wider block border-b border-line pb-1">Alamat Sesuai KTP</span>
                         <div className="space-y-1">
-                          <label className="font-semibold block text-caption mb-1 text-foreground dark:text-muted">Jalan / RT / RW</label>
-                          <input type="text" required value={ktpStreet} onChange={e => setKtpStreet(e.target.value)} placeholder="Nama Jalan, No. Rumah, RT/RW" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label" />
+                          <label className="font-semibold block text-caption mb-1 text-foreground">Jalan / RT / RW</label>
+                          <input type="text" required value={ktpStreet} onChange={e => setKtpStreet(e.target.value)} placeholder="Nama Jalan, No. Rumah, RT/RW" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label" />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <SearchSelect
@@ -947,8 +947,8 @@ function EmployeesView() {
                       <div className="p-3 bg-surface-2 rounded-[var(--radius)] border border-line space-y-3">
                         <span className="font-semibold text-foreground text-label uppercase tracking-wider block border-b border-line pb-1">Alamat Domisili Aktif</span>
                         <div className="space-y-1">
-                          <label className="font-semibold block text-caption mb-1 text-foreground dark:text-muted">Jalan / RT / RW</label>
-                          <input type="text" required value={domicileStreet} onChange={e => setDomicileStreet(e.target.value)} placeholder="Nama Jalan, No. Rumah, RT/RW" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label" />
+                          <label className="font-semibold block text-caption mb-1 text-foreground">Jalan / RT / RW</label>
+                          <input type="text" required value={domicileStreet} onChange={e => setDomicileStreet(e.target.value)} placeholder="Nama Jalan, No. Rumah, RT/RW" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label" />
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <SearchSelect
@@ -1003,26 +1003,26 @@ function EmployeesView() {
                     <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-1">
                         <label className="font-semibold">NPWP (Enkripsi)</label>
-                        <input type="text" required value={npwp} onChange={e => setNpwp(e.target.value)} placeholder="No. NPWP" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={npwp} onChange={e => setNpwp(e.target.value)} placeholder="No. NPWP" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">Status Pajak</label>
-                        <input type="text" required value={taxStatus} onChange={e => setTaxStatus(e.target.value)} placeholder="TK/0, K/0, K/1" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={taxStatus} onChange={e => setTaxStatus(e.target.value)} placeholder="TK/0, K/0, K/1" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-1">
                         <label className="font-semibold">Nama Bank</label>
-                        <input type="text" required value={bankName} onChange={e => setBankName(e.target.value)} placeholder="e.g. Bank Mandiri" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={bankName} onChange={e => setBankName(e.target.value)} placeholder="e.g. Bank Mandiri" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">No Rekening (Enkripsi)</label>
-                        <input type="text" required value={bankAccountNumber} onChange={e => setBankAccountNumber(e.target.value)} placeholder="No Rekening" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={bankAccountNumber} onChange={e => setBankAccountNumber(e.target.value)} placeholder="No Rekening" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                       <div className="space-y-1">
                         <label className="font-semibold">Atas Nama</label>
-                        <input type="text" required value={bankAccountHolder} onChange={e => setBankAccountHolder(e.target.value)} placeholder="Sesuai buku tabungan" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground dark:text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
+                        <input type="text" required value={bankAccountHolder} onChange={e => setBankAccountHolder(e.target.value)} placeholder="Sesuai buku tabungan" className="w-full px-3 py-2 rounded-lg bg-surface border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary transition-all text-label" />
                       </div>
                     </div>
                   </div>
@@ -1117,7 +1117,7 @@ function EmployeesView() {
 
                     {!selectedId && (
                       <div className="space-y-1">
-                        <h4 className="text-caption font-semibold text-muted dark:text-muted uppercase tracking-wider mt-4 flex items-center gap-1.5 pb-1 border-b border-line">
+                        <h4 className="text-caption font-semibold text-muted uppercase tracking-wider mt-4 flex items-center gap-1.5 pb-1 border-b border-line">
                           <ShieldCheck className="w-4 h-4" /> Kredensial Login
                         </h4>
                         <div className="space-y-1 mt-2">
@@ -1145,7 +1145,7 @@ function EmployeesView() {
                 <button
                   type="button"
                   onClick={handleCloseForm}
-                  className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-muted dark:text-muted hover:text-foreground hover:bg-surface cursor-pointer transition-all"
+                  className="px-4 py-2 rounded-lg border border-line text-label font-semibold text-muted hover:text-foreground hover:bg-surface-2 hover:border-line-strong cursor-pointer transition-all"
                 >
                   Batal
                 </button>
@@ -1153,7 +1153,7 @@ function EmployeesView() {
                   type="submit"
                   form="employee-form"
                   disabled={submitting}
-                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground border border-line text-label font-semibold cursor-pointer hover:bg-surface-2 dark:hover:bg-surface-2 disabled:opacity-50 active:scale-[0.98] transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground border border-transparent text-label font-semibold cursor-pointer hover:bg-primary-hover disabled:opacity-50 active:scale-[0.98] transition-all flex items-center gap-1.5"
                 >
                   {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   Simpan Karyawan

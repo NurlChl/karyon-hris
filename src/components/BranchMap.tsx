@@ -114,7 +114,7 @@ export default function BranchMap({ lat, lng, radius, onChange }: BranchMapProps
       <label className="text-label text-subtle font-semibold">Titik Lokasi & Radius Absen</label>
       <div 
         ref={mapRef} 
-        className="w-full h-64 rounded-lg border border-white/8 relative z-10"
+        className="w-full h-64 rounded-lg border border-line relative z-10"
         style={{ minHeight: "250px" }}
       />
       <p className="text-label text-muted italic mt-1">

@@ -162,7 +162,7 @@ export function NotificationBell() {
       >
         <Bell className="w-[18px] h-[18px]" strokeWidth={ICON_STROKE} />
         {unread > 0 && (
-          <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 grid place-items-center rounded-full bg-danger text-white text-caption font-semibold tabular-nums ring-2 ring-surface">
+          <span className="absolute top-1 right-1 min-w-[17px] h-[17px] px-1 grid place-items-center rounded-full bg-danger text-danger-foreground text-caption font-semibold tabular-nums ring-2 ring-surface">
             {unread > 99 ? "99+" : unread}
           </span>
         )}
@@ -170,7 +170,7 @@ export function NotificationBell() {
 
       {open && (
         <SheetPortal enabled={isSheet}>
-          {isSheet && <div className="fixed inset-0 z-[79] bg-black/40" aria-hidden onClick={() => setOpen(false)} />}
+          {isSheet && <div className="fixed inset-0 z-[79] bg-overlay" aria-hidden onClick={() => setOpen(false)} />}
           <div
             ref={sheetRef}
             role="dialog"
