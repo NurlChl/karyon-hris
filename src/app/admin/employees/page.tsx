@@ -36,6 +36,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import { Select } from "@/components/ui";
 import { DatePicker } from "@/components/ui/DatePicker";
+import { Portal } from "@/components/ui/Floating";
 /**
  * A reference the API returns populated on list responses and as a bare id on
  * others. The form needs the id, the table needs the name, so both forms are
@@ -756,7 +757,7 @@ function EmployeesView() {
       {/* Slide-over Form Panel */}
       <AnimatePresence>
         {formOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-end">
+          <Portal><div className="fixed inset-0 z-50 flex items-center justify-end">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1160,7 +1161,7 @@ function EmployeesView() {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div></Portal>
         )}
       </AnimatePresence>
     </div>

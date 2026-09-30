@@ -4,6 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { 
   Package, Loader2, ClipboardCheck, X, FileText, CheckCircle2, ShieldAlert 
 } from "lucide-react";
+import { Portal } from "@/components/ui/Floating";
+import { useToast } from "@/components/ui/Toast";
 
 interface InventoryAsset {
   _id: string;
@@ -22,6 +24,7 @@ interface InventoryAssignment {
 }
 
 export default function InventoryEmployeePage() {
+  const toast = useToast();
   const [assignments, setAssignments] = useState<InventoryAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -135,7 +138,7 @@ export default function InventoryEmployeePage() {
       signatureData = canvas.toDataURL("image/png");
     } else {
       if (!uploadedFileBase64) {
-        alert("Silakan pilih dan unggah berkas BAST terlebih dahulu");
+        toast.error("Berkas belum dipilih", "Pilih dan unggah berkas BAST yang sudah ditandatangani terlebih dahulu.");
         return;
       }
       signatureData = uploadedFileBase64;
@@ -156,11 +159,11 @@ export default function InventoryEmployeePage() {
         setSelectedAsg(null);
         fetchMyInventory();
       } else {
-        alert(data.message || "Gagal menandatangani BAST");
+        toast.error("BAST gagal ditandatangani", data.message || "Coba lagi beberapa saat.");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan koneksi.");
+      toast.error("Tidak dapat terhubung", "Periksa koneksi internet Anda lalu coba lagi.");
     } finally {
       setSubmitting(false);
     }
@@ -252,7 +255,7 @@ export default function InventoryEmployeePage() {
 
         {/* Signature Digital Canvas Modal */}
         {selectedAsg && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
+          <Portal><div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
             <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
               <div className="flex justify-between items-center pb-4 border-b border-line">
                 <div>
@@ -354,7 +357,7 @@ export default function InventoryEmployeePage() {
                 </button>
               </div>
             </div>
-          </div>
+          </div></Portal>
         )}
       </div>
     </div>

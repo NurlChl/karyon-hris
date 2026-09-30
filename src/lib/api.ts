@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fieldLabel } from "./validation-message";
 import { isDbUnreachable } from "@/lib/db";
 import { runWithRequestContext } from "@/lib/integrations/request-context";
 
@@ -117,10 +118,10 @@ export function wrapRouteHandler<C = RouteContext>(
 
       // Repository duplicate key / native PostgreSQL unique violation.
       if (err?.code === 11000 || err?.code === "23505") {
-        const field = Object.keys(err.keyValue ?? {})[0] ?? "data";
+        const field = Object.keys(err.keyValue ?? {})[0];
         return apiError(
           "DUPLICATE",
-          `Nilai untuk "${field}" sudah digunakan. Gunakan nilai lain.`,
+          field ? `${fieldLabel(field)} sudah dipakai data lain. Gunakan nilai yang berbeda.` : "Data yang sama sudah ada. Periksa kembali isian yang harus unik (misalnya email, NIP, atau kode).",
           null,
           409
         );
@@ -129,11 +130,11 @@ export function wrapRouteHandler<C = RouteContext>(
       if (err?.code === "23503" || err?.message === "CONFLICT") return apiError("CONFLICT", "Data sudah berubah atau masih digunakan oleh data lain. Muat ulang dan periksa relasinya.", null, 409);
       // Schema validation and PostgreSQL CHECK/NOT NULL constraints.
       if (err?.name === "ValidationError" || err?.message?.startsWith("Validation failed:") || ["23502", "23514"].includes(String(err?.code))) {
-        return apiError("VALIDATION_ERROR", "Data tidak lolos validasi skema.", null, 400);
+        return apiError("VALIDATION_ERROR", "Ada isian wajib yang kosong atau nilainya di luar batas yang diizinkan. Periksa kembali formulir lalu simpan ulang.", null, 400);
       }
 
       if (err?.name === "CastError" || err?.message === "Invalid record identifier") {
-        return apiError("BAD_REQUEST", "Identitas data yang diminta tidak valid.", null, 400);
+        return apiError("BAD_REQUEST", "Data yang diminta tidak ditemukan atau tautannya tidak valid. Muat ulang halaman dari menu.", null, 400);
       }
 
       // Database unreachable. The predicate lives with the connection code so
@@ -153,7 +154,7 @@ export function wrapRouteHandler<C = RouteContext>(
       console.error("[API ERROR]", { code: err?.code, name: err?.name });
       return apiError(
         "INTERNAL_SERVER_ERROR",
-        "Terjadi kesalahan internal pada server. Tim teknis telah dicatat kejadiannya.",
+        "Terjadi kesalahan di server sehingga permintaan belum diproses. Coba lagi beberapa saat; jika berulang, hubungi administrator dan sebutkan waktu kejadiannya.",
         null,
         500
       );

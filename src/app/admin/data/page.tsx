@@ -4,9 +4,9 @@ import React, { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Download, FileSpreadsheet, FileUp, KeyRound, TriangleAlert, Upload } from "lucide-react";
 import {
-  Alert, Badge, Button, Card, CardBody, CardHeader, Input, PageHeader, Select, SkeletonList, Tabs, TableWrap, Td, Th,
+  Alert, Badge, Button, Card, CardBody, CardHeader, PageHeader, Select, SkeletonList, Tabs, TableWrap, Td, Th,
 } from "@/components/ui";
-import { DatePicker } from "@/components/ui/DatePicker";
+import { DatePicker, MonthPicker } from "@/components/ui/DatePicker";
 import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client-api";
 import { EXPORT_DATASETS, type ExportDataset } from "@/lib/export/catalog";
@@ -56,7 +56,7 @@ function ExportPanel() {
       <Card>
         <CardBody className="flex flex-wrap items-end gap-4">
           <label className="grid gap-1.5 text-body-sm font-semibold text-foreground">Periode bulanan
-            <Input type="month" value={period} onChange={(e) => setPeriod(e.target.value || wibPeriodKey())} className="w-48" />
+            <MonthPicker value={period} onChange={(v) => setPeriod(v || wibPeriodKey())} className="w-48" aria-label="Periode bulanan" />
           </label>
           <label className="grid gap-1.5 text-body-sm font-semibold text-foreground">Tanggal (kehadiran harian)
             <DatePicker value={date} onChange={(v) => setDate(v || wibDateKey())} max={wibDateKey()} className="w-48" aria-label="Tanggal kehadiran" />

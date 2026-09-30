@@ -4,12 +4,15 @@ import React, { useState, useEffect } from "react";
 import { Pagination } from "@/components/ui/Pagination";
 import { 
   Package, Search, Plus, Edit, Loader2, ClipboardCheck, ArrowUpRight, 
-  Trash2, ShieldAlert, X, UserPlus, CheckCircle, RefreshCcw 
+  Trash2, ShieldAlert, X, UserPlus, CheckCircle, RefreshCcw, Camera, ScanLine 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import SearchSelect from "@/components/SearchSelect";
+import { CameraScanner } from "@/components/inventory/CameraScanner";
 import { generateCode39Svg } from "@/lib/barcode";
 import { Select } from "@/components/ui";
+import { Portal } from "@/components/ui/Floating";
+import { confirmDialog } from "@/components/ui/ConfirmHost";
 interface Employee {
   _id: string;
   name: string;
@@ -62,6 +65,15 @@ export default function InventoryAdminPage() {
   const [auditNotes, setAuditNotes] = useState("");
   const [scanInputCode, setScanInputCode] = useState("");
   const [scanError, setScanError] = useState("");
+  // Hardware scanners type into the focused field; the camera is optional.
+  const [scanMode, setScanMode] = useState<"device" | "camera">("device");
+  useEffect(() => {
+    try { if (localStorage.getItem("hris.inventory.scanMode") === "camera") queueMicrotask(() => setScanMode("camera")); } catch { /* private mode */ }
+  }, []);
+  const chooseScanMode = (mode: "device" | "camera") => {
+    setScanMode(mode);
+    try { localStorage.setItem("hris.inventory.scanMode", mode); } catch { /* private mode */ }
+  };
 
   // Form fields
   const [formCode, setFormCode] = useState("");
@@ -226,7 +238,7 @@ export default function InventoryAdminPage() {
   };
 
   const handleReturnAsset = async (asset: InventoryAsset) => {
-    if (!confirm(`Konfirmasi pengembalian aset ${asset.name}?`)) return;
+    if (!await confirmDialog({ title: "Terima pengembalian aset?", message: `${asset.name} (${asset.code}) dicatat sudah dikembalikan dan kembali tersedia.`, confirmLabel: "Terima pengembalian", tone: "primary" })) return;
     setErrorMsg("");
     setSuccessMsg("");
 
@@ -243,7 +255,7 @@ export default function InventoryAdminPage() {
       if (data.success) {
         fetchAssets();
       } else {
-        alert(data.message || "Gagal mengembalikan aset");
+        setErrorMsg(data.message || "Pengembalian aset gagal dicatat. Muat ulang halaman lalu coba lagi.");
       }
     } catch (err) {
       console.error(err);
@@ -273,8 +285,12 @@ export default function InventoryAdminPage() {
 
   const handleScanSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    await lookupCode(scanInputCode);
+  };
+
+  const lookupCode = async (raw: string) => {
     setScanError("");
-    const code = scanInputCode.trim();
+    const code = raw.trim();
     if (!code) return;
 
     // Looked up on the server: the asset may be on a page that is not loaded.
@@ -537,7 +553,7 @@ export default function InventoryAdminPage() {
 
       {/* Asset Form Drawer Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-end bg-overlay backdrop-blur-xs">
+        <Portal><div className="fixed inset-0 z-50 flex items-center justify-end bg-overlay backdrop-blur-xs">
           <div className="w-full max-w-lg h-full bg-surface border-l border-line relative z-10 shadow-[var(--shadow-pop)] p-6 flex flex-col justify-between overflow-y-auto">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-line mb-6">
@@ -635,12 +651,12 @@ export default function InventoryAdminPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div></Portal>
       )}
 
       {/* Assign Asset Modal */}
       {isAssignOpen && selectedAsset && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
+        <Portal><div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
           <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
             <div className="flex justify-between items-center pb-4 border-b border-line">
               <h3 className="text-body font-semibold text-foreground uppercase">Tugaskan Aset Inventaris</h3>
@@ -701,12 +717,12 @@ export default function InventoryAdminPage() {
               </button>
             </div>
           </div>
-        </div>
+        </div></Portal>
       )}
 
       {/* Signature Viewer Modal */}
       {signatureModalUrl && (
-        <div className="fixed inset-0 z-55 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
+        <Portal><div className="fixed inset-0 z-55 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
           <div className="w-full max-w-sm bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
             <div className="flex justify-between items-center pb-4 border-b border-line">
               <h3 className="text-label font-semibold text-foreground uppercase">Tanda Tangan Serah Terima (BAST)</h3>
@@ -733,14 +749,14 @@ export default function InventoryAdminPage() {
               Tutup
             </button>
           </div>
-        </div>
+        </div></Portal>
       )}
       {/* Monthly Physical Audit Scan Modal */}
       {isAuditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4 animate-fade-in">
-          <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col gap-4">
+        <Portal><div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4 animate-fade-in">
+          <div className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-4 border-b border-line">
-              <h3 className="text-body font-semibold text-foreground uppercase">Audit Fisik Bulanan Inventaris</h3>
+              <h3 className="text-body font-semibold text-foreground">Audit fisik bulanan inventaris</h3>
               <button
                 onClick={() => {
                   setIsAuditOpen(false);
@@ -752,6 +768,22 @@ export default function InventoryAdminPage() {
               </button>
             </div>
 
+            <div role="tablist" aria-label="Cara memindai" className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-surface-2 border border-line">
+              {([["device", "Scanner / ketik", ScanLine], ["camera", "Kamera", Camera]] as const).map(([mode, label, Icon]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  role="tab"
+                  aria-selected={scanMode === mode}
+                  onClick={() => chooseScanMode(mode)}
+                  className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-label font-semibold transition-colors cursor-pointer ${scanMode === mode ? "bg-surface text-heading border border-line" : "text-muted hover:text-foreground border border-transparent"}`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <form onSubmit={handleScanSearch} className="flex gap-2">
               <div className="flex-1 relative">
                 <input
@@ -759,7 +791,8 @@ export default function InventoryAdminPage() {
                   required
                   value={scanInputCode}
                   onChange={(e) => setScanInputCode(e.target.value)}
-                  placeholder="Scan barcode / Ketik kode aset..."
+                  autoFocus={scanMode === "device"}
+                  placeholder="Scan barcode / ketik kode aset…"
                   className="w-full px-3 py-2 rounded-lg bg-surface-2 border border-line text-foreground focus:outline-none focus:ring-1 focus:ring-primary text-label placeholder:text-subtle"
                 />
               </div>
@@ -785,8 +818,18 @@ export default function InventoryAdminPage() {
               </div>
             )}
 
-            {/* Simulated Live Scanner Feed */}
-            {!auditAsset && !successMsg && (
+            {scanMode === "camera" && !successMsg && (
+              <CameraScanner
+                paused={!!auditAsset || submitting}
+                onDetected={(code) => {
+                  setScanInputCode(code);
+                  void lookupCode(code);
+                }}
+              />
+            )}
+
+            {/* Hardware scanner guide */}
+            {scanMode === "device" && !auditAsset && !successMsg && (
               <div className="relative border border-line rounded-lg overflow-hidden h-40 bg-surface-2 flex flex-col items-center justify-center text-muted">
                 <div className="absolute inset-x-0 h-[2px] bg-danger top-1/2 -translate-y-1/2 animate-[pulse_1.5s_infinite] shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
                 <div className="border border-success/40 w-64 h-24 rounded flex items-center justify-center border-dashed relative">
@@ -796,7 +839,7 @@ export default function InventoryAdminPage() {
                   <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-success" />
                   <span className="text-caption uppercase tracking-widest font-mono text-success">Menunggu Barcode...</span>
                 </div>
-                <span className="text-caption text-subtle mt-2 font-sans text-center px-4">Gunakan scanner barcode USB/wireless atau ketikkan kode di atas</span>
+                <span className="text-caption text-subtle mt-2 font-sans text-center px-4">Scanner USB/Bluetooth bekerja seperti keyboard: klik kolom di atas lalu pindai label. Kode juga bisa diketik manual.</span>
               </div>
             )}
 
@@ -853,7 +896,7 @@ export default function InventoryAdminPage() {
               </form>
             )}
           </div>
-        </div>
+        </div></Portal>
       )}
     </div>
   );

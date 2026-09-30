@@ -41,6 +41,7 @@ import { Combobox } from "@/components/ui/Combobox";
 import { DatePicker } from "@/components/ui/DatePicker";
 import { useToast } from "@/components/ui/Toast";
 import { HireModal } from "@/components/recruitment/HireModal";
+import { MoveStageDialog, type StageMove } from "@/components/recruitment/MoveStageDialog";
 import { api, errorMessage } from "@/lib/client-api";
 import { displayAnswer, EDUCATION_OPTIONS, type FieldType } from "@/lib/hr/application-form";
 import { formatBytes, linkHost } from "@/lib/attachments";
@@ -139,6 +140,7 @@ export default function ApplicantDetailPage() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [modal, setModal] = useState<"reject" | "interview" | "hire" | null>(null);
+  const [pendingMove, setPendingMove] = useState<StageMove | null>(null);
 
   const load = useCallback(async () => {
     setError("");
@@ -200,6 +202,8 @@ export default function ApplicantDetailPage() {
   const stages = vacancy?.stages ?? [];
   const stageIndex = stages.indexOf(c.currentStage);
   const nextStage = stageIndex >= 0 && stageIndex < stages.length - 1 ? stages[stageIndex + 1] : null;
+  const previousStage = stageIndex > 0 ? stages[stageIndex - 1] : null;
+  const askMove = (to: string) => setPendingMove({ candidateId: c._id, candidateName: c.name, from: c.currentStage, to });
   const hired = Boolean(c.employeeId);
   const rejected = c.status === "rejected";
   const locked = hired;
@@ -273,8 +277,13 @@ export default function ApplicantDetailPage() {
                 <Button variant="secondary" icon={CalendarClock} onClick={() => setModal("interview")}>
                   Jadwalkan wawancara
                 </Button>
+                {previousStage && (
+                  <Button variant="ghost" icon={ArrowLeft} disabled={busy} onClick={() => askMove(previousStage)}>
+                    Kembali ke {previousStage}
+                  </Button>
+                )}
                 {nextStage ? (
-                  <Button icon={ArrowRight} loading={busy} onClick={() => move({ stage: nextStage }, "Tahap diperbarui")}>
+                  <Button icon={ArrowRight} loading={busy} onClick={() => askMove(nextStage)}>
                     Lanjut ke {nextStage}
                   </Button>
                 ) : (
@@ -319,7 +328,7 @@ export default function ApplicantDetailPage() {
                 stages={stages}
                 current={c.currentStage}
                 disabled={locked || busy || rejected}
-                onPick={(stage) => move({ stage }, "Tahap diperbarui")}
+                onPick={askMove}
               />
             </Card>
           )}
@@ -410,6 +419,17 @@ export default function ApplicantDetailPage() {
           )}
         </aside>
       </div>
+
+      <MoveStageDialog
+        move={pendingMove}
+        stages={stages}
+        loading={busy}
+        onClose={() => setPendingMove(null)}
+        onConfirm={async (notes) => {
+          if (!pendingMove) return;
+          if (await move({ stage: pendingMove.to, ...(notes ? { notes } : {}) }, "Tahap diperbarui")) setPendingMove(null);
+        }}
+      />
 
       <RejectModal
         open={modal === "reject"}

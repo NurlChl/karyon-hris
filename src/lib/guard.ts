@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { validationMessage } from "./validation-message";
 import { apiError } from "./api";
 import { checkPermission, type PermissionResult } from "./rbac";
 import { connectToDatabase } from "./db";
@@ -262,12 +263,9 @@ export async function parseBody<T>(req: Request, schema: ZodType<T>): Promise<T>
     if (err instanceof ZodError) {
       const fields = err.issues.map((i) => ({
         field: i.path.join(".") || "(body)",
-        message: i.message,
+        message: validationMessage(i as Parameters<typeof validationMessage>[0]),
       }));
-      throw BadRequest(
-        fields[0] ? `${fields[0].field}: ${fields[0].message}` : "Data yang dikirim tidak valid.",
-        fields
-      );
+      throw BadRequest(fields[0]?.message ?? "Data yang dikirim tidak valid.", fields);
     }
     throw err;
   }
@@ -280,8 +278,7 @@ export function parseQuery<T>(req: Request, schema: ZodType<T>): T {
     return schema.parse(params);
   } catch (err) {
     if (err instanceof ZodError) {
-      const first = err.issues[0];
-      throw BadRequest(`${first.path.join(".") || "query"}: ${first.message}`);
+      throw BadRequest(validationMessage(err.issues[0] as Parameters<typeof validationMessage>[0]));
     }
     throw err;
   }

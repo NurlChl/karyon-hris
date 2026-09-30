@@ -9,6 +9,7 @@ import { Alert, Badge, Button, ConfirmDialog, EmptyState, ErrorState, Field, Inp
 import { useToast } from "@/components/ui/Toast";
 import { api, errorMessage } from "@/lib/client-api";
 import { hasFeature, useLicense } from "@/lib/use-license";
+import { Portal } from "@/components/ui/Floating";
 
 // Leaflet touches `window`, so the map only loads in the browser.
 const BranchMap = dynamic(() => import("@/components/BranchMap"), {
@@ -219,7 +220,7 @@ export default function BranchesPage() {
 
       <AnimatePresence>
         {formOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-end">
+          <Portal><div className="fixed inset-0 z-50 flex items-center justify-end">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -286,7 +287,7 @@ export default function BranchesPage() {
                 </Button>
               </div>
             </motion.aside>
-          </div>
+          </div></Portal>
         )}
       </AnimatePresence>
 

@@ -2,7 +2,14 @@ import type { Metadata, Viewport } from "next";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider, themeInitScript } from "@/components/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
+import { OverflowTooltip } from "@/components/ui/OverflowTooltip";
 import "./globals.css";
+import { Inter } from "next/font/google";
+
+// Self-hosted Inter at build time, so the website and HRIS render the same
+// typeface on every device instead of whatever font the visitor has installed.
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+import { ConfirmHost } from "@/components/ui/ConfirmHost";
 
 export const metadata: Metadata = {
   title: {
@@ -33,7 +40,7 @@ export default function RootLayout({
     <html
       lang="id"
       suppressHydrationWarning
-      className="h-full antialiased font-sans"
+      className={`h-full antialiased font-sans ${inter.variable}`}
     >
       <head>
         {/* Applies the stored theme before first paint to avoid a flash. */}
@@ -49,6 +56,8 @@ export default function RootLayout({
         <SessionProvider>
           <ThemeProvider>
             <ToastProvider>{children}</ToastProvider>
+            <OverflowTooltip />
+            <ConfirmHost />
           </ThemeProvider>
         </SessionProvider>
       </body>

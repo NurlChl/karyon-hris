@@ -278,9 +278,11 @@ if [ "$LIFECYCLE" = "yes" ]; then
   [ "$(get_env HRIS_EDITION)" = "pro" ] || fail "--lifecycle needs HRIS Pro. Upgrade first with --upgrade-code."
   [ -n "$(get_env HRIS_AGENT_IMAGE)" ] || fail "No agent image is published for this license server."
   [ -n "$(get_env LICENSE_PUBLIC_KEY_PEM_B64)" ] || fail "LICENSE_PUBLIC_KEY_PEM_B64 is missing; run the upgrade command again."
+  # The agent manages containers through the host socket; Docker Desktop (macOS/Windows) is not supported.
+  [ "$(uname -s)" = "Linux" ] || fail "--lifecycle is only supported on Linux servers. On macOS/Windows use manual backup and update."
   [ -S /var/run/docker.sock ] || fail "--lifecycle needs /var/run/docker.sock on a Linux host."
   set_env COMPOSE_FILE "compose.image.yml:compose.lifecycle.yml"
-  set_env DOCKER_GID "$(stat -c %g /var/run/docker.sock)"
+  set_env DOCKER_GID "$(stat -c %g /var/run/docker.sock 2>/dev/null || stat -f %g /var/run/docker.sock)"
   [ -n "$(get_env HRIS_AGENT_TOKEN)" ] || set_env HRIS_AGENT_TOKEN "$(rand_hex 32)"
   [ -n "$(get_env AUTO_BACKUP_INTERVAL_HOURS)" ] || set_env AUTO_BACKUP_INTERVAL_HOURS 24
   [ -n "$(get_env AUTO_UPDATE_INTERVAL_HOURS)" ] || set_env AUTO_UPDATE_INTERVAL_HOURS 0

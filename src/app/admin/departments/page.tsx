@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import SearchSelect from "@/components/SearchSelect";
 
 import { Select } from "@/components/ui";
+import { Portal } from "@/components/ui/Floating";
+import { confirmDialog } from "@/components/ui/ConfirmHost";
 /**
  * A reference the API may return either populated or as a bare id, depending on
  * the endpoint. The form reads `_id` off it and the table reads `name`, so both
@@ -200,7 +202,7 @@ export default function DepartmentsPage() {
 
   const handleDeleteItem = async (id: string) => {
     const label = activeTab === "division" ? "divisi" : "jabatan";
-    if (!confirm(`Apakah Anda yakin ingin menghapus ${label} ini?`)) return;
+    if (!await confirmDialog({ title: `Hapus ${label}?`, message: `Data ${label} akan dihapus. Hanya bisa bila tidak lagi dipakai karyawan.`, confirmLabel: "Hapus" })) return;
 
     const endpoint = activeTab === "division" ? `/api/v1/divisions/${id}` : `/api/v1/positions/${id}`;
 
@@ -322,7 +324,7 @@ export default function DepartmentsPage() {
       {/* Overlay Form Modal */}
       <AnimatePresence>
         {formOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center font-sans">
+          <Portal><div className="fixed inset-0 z-50 flex items-center justify-center font-sans">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -500,7 +502,7 @@ export default function DepartmentsPage() {
                 </div>
               </form>
             </motion.div>
-          </div>
+          </div></Portal>
         )}
       </AnimatePresence>
     </div>

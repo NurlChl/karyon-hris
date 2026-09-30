@@ -173,8 +173,8 @@
   --color-info: var(--info);
   --color-info-soft: var(--info-soft);
 
-  --font-sans: "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-inter), "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
 
   /*
    * Type scale. Every text size in the interface comes from this list; there
@@ -247,7 +247,7 @@ html {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-inter), "Inter", "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   /* cv11 gives a single-storey 'a'/'g' pairing that reads cleaner at UI sizes;
      ss01 fixes the default Inter 'l' which is easy to confuse with capital I. */
   font-feature-settings: "cv11", "ss01";
@@ -416,8 +416,10 @@ input[type="month"]::-webkit-calendar-picker-indicator { cursor: pointer; }
   to { opacity: 1; transform: none; }
 }
 
+/* `backwards`, not `both`: a lingering transform turns the element into the
+   containing block for `position: fixed` descendants (modals, drawers). */
 .animate-fade-up {
-  animation: hris-fade-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: hris-fade-up 0.28s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 /* Decorative dotted field used behind the landing hero. */
@@ -438,3 +440,33 @@ input[type="month"]::-webkit-calendar-picker-indicator { cursor: pointer; }
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Full-text bubble for truncated content (components/ui/OverflowTooltip). */
+.overflow-tooltip {
+  position: fixed;
+  z-index: 95;
+  max-width: min(380px, calc(100vw - 24px));
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--heading);
+  color: var(--surface);
+  font-size: var(--text-body-sm);
+  line-height: 1.45;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  box-shadow: var(--shadow-pop);
+  animation: tooltip-in 140ms ease-out;
+}
+@keyframes tooltip-in { from { opacity: 0; } }
+
+/* Staggered entrance for card grids (CSS only). `backwards` keeps no transform
+   after the animation, so fixed-position popups inside cards stay correct. */
+.grid > .card, .grid > a > .card { animation: hris-fade-up 0.34s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.grid > :nth-child(2) { animation-delay: 40ms; }
+.grid > :nth-child(3) { animation-delay: 80ms; }
+.grid > :nth-child(4) { animation-delay: 120ms; }
+.grid > :nth-child(n+5) { animation-delay: 160ms; }
+a > .card, button.card { transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+a:hover > .card { transform: translateY(-2px); box-shadow: var(--shadow-pop); }
+@media (prefers-reduced-motion: reduce) { .grid > .card, .grid > a > .card { animation: none; } a:hover > .card { transform: none; } }

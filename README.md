@@ -1,125 +1,163 @@
-# HRIS — aplikasi perusahaan
+<div align="center">
 
-Proyek mandiri: jalankan seluruh perintah di folder ini. Tidak memerlukan folder website atau agent untuk mode Community.
+# Karyon HRIS
 
-> Status publikasi: **gunakan repository private dahulu sampai lisensi open-source dan review ekspor diputuskan**. Implementasi Pro yang tersedia telah dipindahkan ke modul privat; folder ini mempertahankan model/tipe kompatibilitas dan endpoint penolakan fitur Pro, bukan mesin Pro. Jangan mempublikasikan history Git workspace lama karena masih dapat berisi source privat (commit awal repository ini masih memuatnya). `private: true` di package.json tidak membuat repository GitHub otomatis private.
+**HRIS self-hosted untuk perusahaan Indonesia.** Presensi foto dan GPS, cuti, payroll BPJS dan PPh 21, KPI, rekrutmen, dan inventaris, dijalankan di server milik perusahaan Anda sendiri.
 
-Community tidak mengaktifkan Pro melalui environment bypass. Slip payroll yang sudah diterbitkan tetap dapat dibaca; kalkulasi payroll lanjutan, biometrik, kasus disiplin, multi-cabang, analitik lanjutan, API key/webhook, dan scheduler memerlukan distribusi Pro. Monitor kehadiran + notifikasi, ekspor Excel/CSV, dan impor CSV tersedia di Community. Dataset demo dapat memuat data historis Pro untuk uji kompatibilitas; keberadaan data bukan akses ke mesinnya. Untuk upgrade, gunakan image Pro dan pertahankan database, volume upload serta seluruh kunci enkripsi.
+[Website](https://karyon.lifistudio.com/) · [Dokumentasi](https://karyon.lifistudio.com/docs) · [Fitur](https://karyon.lifistudio.com/features) · [Harga](https://karyon.lifistudio.com/pricing) · [Blog](https://karyon.lifistudio.com/blog)
 
-## Instalasi cepat (Docker)
+</div>
 
-Prasyarat: Docker Engine 24+ atau Docker Desktop, Docker Compose 2.24+, `curl`, `openssl`. Linux/macOS/WSL.
+---
 
-Installer meniru quick start AnythingMCP: mengambil `compose.image.yml`, membuat `.env` berisi secret acak (mode 600), menjalankan PostgreSQL 18 + HRIS, menunggu health check, lalu membuat superadmin pertama dengan password acak yang ditampilkan **sekali**. Aplikasi hanya terikat ke `127.0.0.1` sampai Anda menaruh reverse proxy HTTPS di depannya.
+## Kenapa Karyon HRIS
 
-```sh
-# Pelanggan: installer disajikan website lisensi (alamat server lisensi dan image Community sudah terisi).
-curl -fsSL https://LICENSE-WEBSITE/install.sh | sh -s -- --url https://hr.perusahaan.co.id --trust-proxy 1
+- **Data tetap di server Anda.** Database, lampiran, dan kunci enkripsi tidak pernah dikirim ke server kami. Server lisensi hanya menerima identitas instalasi, alamat website, dan status langganan.
+- **Gratis untuk mulai.** Edisi Community gratis selamanya, tanpa batas jumlah karyawan.
+- **Bayar per instalasi, bukan per karyawan.** Edisi Pro dibayar per alamat website HRIS, bulanan atau tahunan.
+- **Upgrade tanpa instal ulang.** Tempel license key di aplikasi, jalankan satu perintah, dan fitur Pro aktif. Data, akun, dan kunci tidak berubah. Jika langganan berakhir, aplikasi kembali ke Community tanpa menghapus data.
+- **Satu perintah untuk memasang.** Installer menyiapkan PostgreSQL 18, secret acak, health check, dan akun superadmin pertama.
 
-# Dari checkout source ini (image dibangun lokal):
-sh install.sh --build .
+## Fitur
 
-# Dari image yang Anda publikasikan sendiri:
-sh install.sh --image ghcr.io/OWNER/hris:VERSION --license-server https://LICENSE-WEBSITE
-```
+| Fitur | Community | Pro |
+| --- | :---: | :---: |
+| Presensi foto, GPS, dan radius cabang | ✓ | ✓ |
+| Monitor hadir, belum absen, alpha, dan notifikasi | ✓ | ✓ |
+| Cuti, izin, jadwal, shift, dan tukar libur | ✓ | ✓ |
+| Payroll dasar, BPJS, PPh 21, dan slip gaji | ✓ | ✓ |
+| KPI, kontrak, rekrutmen (pipeline drag & drop), inventaris (scan barcode lewat kamera) | ✓ | ✓ |
+| Ekspor Excel/CSV dan impor CSV | ✓ | ✓ |
+| Multi-cabang dan analitik lanjutan | | ✓ |
+| Face recognition dengan anti-spoof | | ✓ |
+| Payroll lanjutan dan simulator kebijakan | | ✓ |
+| Workflow disiplin (SP, pembinaan, PHK) | | ✓ |
+| REST API dengan API key dan webhook | | ✓ |
+| Backup, update, dan rollback otomatis (agent, server Linux) | | ✓ |
+| Dukungan | Komunitas & dokumentasi | Email hari kerja |
 
-### Upgrade ke Pro (distribusi hibrida)
+Daftar lengkap dan perbandingannya ada di [halaman fitur](https://karyon.lifistudio.com/features).
 
-1. Superadmin membuka **Lisensi & Paket**, menempel license key, klik **Aktifkan**. Aplikasi memanggil `HRIS_LICENSE_SERVER` langsung (tanpa agent); installation id, activation secret, dan lease bertanda tangan disimpan terenkripsi (`ENCRYPTION_KEY`) di tabel pengaturan.
-2. Klik **Buat perintah upgrade**. Server lisensi membuat kode sekali pakai (15 menit) yang terikat ke instalasi dan lisensi aktif.
-3. Jalankan perintah di folder instalasi: `curl -fsSL https://LICENSE-WEBSITE/install.sh | sh -s -- --upgrade-code XXXX-XXXX-XXXX-XXXX`. Installer menukar kode menjadi kredensial pull khusus instalasi (`docker login --password-stdin`), mengganti `HRIS_IMAGE` ke image Pro di registry privat, menyimpan image lama di `HRIS_PREVIOUS_IMAGE`, lalu pull + restart. Jika pull atau health check gagal, image sebelumnya dipulihkan otomatis.
+## Instalasi cepat
 
-Registry privat hanya memberi token pull 5 menit selama lisensi aktif, sehingga kredensial yang bocor tidak berguna setelah langganan berakhir. Build Pro memverifikasi lease dengan public key yang ditanam saat perakitan, sehingga lease palsu tidak membuka fitur.
+Prasyarat: Docker Engine 24+ atau Docker Desktop, Docker Compose 2.24+. Aplikasi hanya terikat ke `127.0.0.1` sampai Anda memasang reverse proxy HTTPS di depannya.
 
-- Menjalankan ulang installer di folder yang sama **tidak mengubah kunci di `.env`**; hanya memperbarui compose, pull image, dan restart (jalur update).
-- `--lifecycle` (Pro, Linux) menambah agent backup/update/rollback otomatis melalui `compose.lifecycle.yml` dengan Docker socket. Socket setara akses root host; default-nya mati. Agent membaca lease dari aplikasi (`/api/v1/license/lease`, Bearer `HRIS_AGENT_TOKEN`) dan memverifikasinya sendiri.
-- File compose: `compose.image.yml` (dasar, Community dan Pro) dan `compose.lifecycle.yml` (opt-in). `COMPOSE_FILE` di `.env` menentukan gabungannya, jadi cukup `docker compose ps|logs|up -d` di folder instalasi.
-- Database memakai role aplikasi **bukan superuser**; password superuser (`POSTGRES_ADMIN_PASSWORD`) tidak masuk container aplikasi. Database tidak membuka port ke host.
-- Setelah mengubah `install.sh` atau compose, jalankan `node scripts/sync-installer.mjs` di folder `website/` agar versi yang disajikan website ikut diperbarui (`--check` untuk CI).
-
-## Development lokal
-
-Prasyarat: Node.js 24 LTS, npm, dan PostgreSQL 18. Server PostgreSQL existing tidak di-upgrade otomatis; lihat [upgrade PostgreSQL 18](../docs/UPGRADE-POSTGRESQL-18.md).
-
-```sh
-npm ci
-node scripts/setup-env.mjs
-# Edit .env: HRIS_DATABASE_URL atau HRIS_DB_*, serta NEXTAUTH_URL.
-npm run db:migrate
-npm run seed
-npm run dev
-```
-
-Jika `.env` sudah ada, jangan jalankan setup ulang. Akun bootstrap: `SEED_ADMIN_EMAIL` (default `admin@hris.com`) di http://localhost:3000/auth/admin. Akun demo karyawan `budi@hris.com` (http://localhost:3000/auth/login) hanya dibuat di luar produksi bila `SEED_STAFF_PASSWORD` diisi. Password berasal dari `.env`, bukan password universal. Seed tidak mereset akun existing. Dataset 200 karyawan hanya untuk pengujian: `npm run seed:demo:plan`, lalu `npm run seed:demo`.
-
-## Docker lokal — build source repository ini
+**Linux dan macOS**
 
 ```sh
-node scripts/setup-env.mjs
-# Review .env, jangan mengganti kunci pada instalasi existing. Pastikan POSTGRES_ADMIN_PASSWORD terisi.
-docker compose up -d --build
-docker compose exec app node db-seed.cjs   # memakai SEED_ADMIN_* dari .env (env_file)
+curl -fsSL https://karyon.lifistudio.com/install.sh | sh
 ```
 
-Buka http://localhost:3000. Compose membuat PostgreSQL 18 terpisah pada volume `postgres18_data`; tidak memakai database remote dari HRIS_DATABASE_URL. Migrasi dijalankan saat container mulai; seed akun dijalankan secara eksplisit (aman di produksi: hanya data dasar + superadmin). Port aplikasi terikat loopback secara default.
+**Windows (PowerShell)**
 
-`LOCAL_STORAGE_PATH=/app/storage` memakai volume `uploads`. Jangan menjalankan `docker compose down -v` kecuali memang hendak menghapus seluruh data dan lampiran instalasi ini.
+```powershell
+& ([scriptblock]::Create((Invoke-RestMethod "https://karyon.lifistudio.com/install.ps1")))
+```
 
-Instalasi lama dengan PostgreSQL 17 (volume `postgres_data`) tidak dipindahkan otomatis. Ikuti [panduan upgrade](../docs/UPGRADE-POSTGRESQL-18.md): dump → database 18 baru → restore.
+Installer mengambil file compose, membuat `.env` berisi secret acak (mode 600), menjalankan PostgreSQL 18 dan HRIS, menunggu health check, lalu menampilkan password superadmin pertama **satu kali**. Buka `http://localhost:3000/auth/admin` dan segera ganti password tersebut.
 
-## Dokploy
+Untuk domain produksi:
 
-### Git/source
+```sh
+curl -fsSL https://karyon.lifistudio.com/install.sh | sh -s -- --url https://hr.perusahaan.co.id --trust-proxy 1
+```
 
-1. Push isi proyek ini ke repository **private**. Hubungkan akses GitHub pada Dokploy.
-2. Buat layanan Docker Compose dengan repository ini sebagai root dan path `compose.yml`.
-3. Isi environment dari `.env.example` (termasuk `POSTGRES_ADMIN_PASSWORD`); sediakan `.env` untuk `env_file` sesuai konfigurasi deployment Dokploy. Untuk workflow tanpa file `.env`, gunakan metode image di bawah.
-4. Pasang domain Dokploy ke service `app`, port container `3000`, aktifkan HTTPS, isi `NEXTAUTH_URL` sesuai domain dan `TRUST_PROXY=1` (Traefik Dokploy).
-5. Jalankan seed sekali melalui terminal container: `SEED_ADMIN_EMAIL=... SEED_ADMIN_PASSWORD=... node db-seed.cjs`.
+Panduan per sistem operasi, database eksternal, Dokploy, dan pemecahan masalah ada di [dokumentasi instalasi](https://karyon.lifistudio.com/docs#install). Anda juga bisa membaca isi skrip sebelum menjalankannya: [install.sh](https://karyon.lifistudio.com/install.sh) · [install.ps1](https://karyon.lifistudio.com/install.ps1).
 
-### Raw Compose / image
+### Menjalankan ulang dan memperbarui
 
-Gunakan [panduan Dokploy Raw Compose](docs/DOKPLOY-RAW-COMPOSE.md) atau bagian **Instalasi Dokploy** pada dokumentasi website lisensi (`/docs#dokploy`). Panduan tersebut menyediakan YAML siap salin untuk image Community dan PostgreSQL internal Dokploy, daftar environment, pengaturan domain port 3000, seed pertama, backup, serta langkah update dengan redeploy.
+Menjalankan installer lagi di folder yang sama **tidak mengubah kunci di `.env`**. Installer hanya memperbarui file compose, menarik image terbaru, dan me-restart aplikasi.
 
-Jangan menempel `compose.image.yml` langsung tanpa mengubah jaringan dan port; file itu ditujukan untuk installer standalone yang mengikat port pada `127.0.0.1`. Raw Compose Dokploy tidak menyertakan installation manager. Menempel lisensi pada image Community tidak otomatis menarik image Pro; registry privat saat ini memakai token pull sementara, bukan kredensial registry pelanggan jangka panjang. Jangan memakai publisher token sebagai password pull pelanggan.
+### Upgrade ke Pro
 
-## Reverse proxy dan IP klien
+1. Beli lisensi di [halaman harga](https://karyon.lifistudio.com/pricing). License key muncul di dashboard pelanggan setelah pembayaran terkonfirmasi.
+2. Di HRIS, buka **Lisensi & Paket**, tempel license key, lalu klik **Aktifkan**.
+3. Klik **Buat perintah upgrade** dan jalankan perintah yang ditampilkan di folder instalasi. Kode berlaku 15 menit dan hanya untuk instalasi tersebut.
 
-`TRUST_PROXY` adalah jumlah proxy tepercaya di depan aplikasi (1 untuk Traefik/nginx, 2 untuk Cloudflare → Traefik). IP klien untuk rate limit dan audit diambil dari entri `X-Forwarded-For` yang ditambahkan proxy tersebut, bukan entri paling kiri yang bisa dipalsukan. Tanpa proxy, biarkan `0`.
+Installer menukar kode menjadi kredensial pull khusus instalasi, beralih ke image Pro, lalu memeriksa kesehatan aplikasi. Jika pull atau health check gagal, image sebelumnya dipulihkan otomatis. License key bisa diganti atau dilepas dari menu yang sama saat pindah server.
 
-## Backup, update, rollback
+Opsi `--lifecycle` (Pro, khusus Linux) menambahkan agent untuk backup, update, dan rollback terjadwal. Agent memerlukan akses Docker socket, jadi opsi ini mati secara default.
 
-Gunakan backup PostgreSQL dan volume Dokploy/server. Simpan juga `.env`/kunci enkripsi secara aman di luar repository. Backup database tanpa kunci enkripsi dan lampiran belum cukup untuk pemulihan lengkap. Gunakan tag/digest image yang tetap, backup sebelum migrasi, dan uji restore. Rollback image tidak membatalkan perubahan schema database.
+## Keamanan
+
+- Database memakai role aplikasi yang **bukan superuser** dan tidak membuka port ke host.
+- Data sensitif karyawan dienkripsi dengan `ENCRYPTION_KEY`. Simpan `.env` bersama backup database dan lampiran; backup tanpa kunci tidak bisa dipulihkan.
+- Fitur Pro diverifikasi dengan lease bertanda tangan, bukan variabel environment, sehingga tidak bisa diaktifkan dengan mengubah konfigurasi.
+- `TRUST_PROXY` menentukan jumlah proxy tepercaya (1 untuk Traefik/nginx, 2 untuk Cloudflare → Traefik). IP klien untuk rate limit dan audit diambil dari entri `X-Forwarded-For` milik proxy tersebut.
+
+Temukan celah keamanan? Laporkan secara privat melalui [halaman kontak](https://karyon.lifistudio.com/contact), jangan lewat issue publik.
+
+## Backup dan pemulihan
 
 ```sh
 docker compose exec -T postgres pg_dump -U postgres -Fc hris > hris-$(date +%F).dump
 ```
 
-Agent tidak dibutuhkan untuk lisensi. Agent lifecycle (opsional, Pro) memakai `HRIS_AGENT_TOKEN` (min. 32 karakter) untuk membaca lease dari aplikasi; agent tidak membuka port, dan Docker socket hanya dipasang bila `--lifecycle` dipilih.
+Cadangkan juga `.env` dan volume `uploads`. Gunakan tag atau digest image yang tetap, backup sebelum update, dan uji proses restore secara berkala. Rollback image tidak membatalkan perubahan schema database.
 
-## Integrasi API (Pro)
+## Development
 
-Community tidak menerima API key dan tidak menyediakan `/api-docs` maupun `/api/v1/openapi`; halamannya menampilkan informasi paket Pro. Pada distribusi Pro, admin membuat API key di **Admin → Integrasi API**, lalu sistem lain memanggil `/api/v1/...` dengan `Authorization: Bearer hris_…`. Scope berformat `modul:aksi` sesuai matriks RBAC (modul `settings` tidak tersedia), tidak boleh melebihi izin pembuat, dan dicek ulang pada setiap request. Key tidak memiliki tautan karyawan sehingga hanya melihat data yang pembuatnya boleh lihat se-perusahaan; endpoint pribadi menolak key.
-
-## Pemeriksaan
+Prasyarat: Node.js 24 LTS, npm, dan PostgreSQL 18.
 
 ```sh
-npm run build
+npm ci
+node scripts/setup-env.mjs     # hanya bila .env belum ada
+# Isi HRIS_DATABASE_URL (atau HRIS_DB_*) dan NEXTAUTH_URL di .env
+npm run db:migrate
+npm run seed
+npm run dev
+```
+
+Akun bootstrap memakai `SEED_ADMIN_EMAIL` di http://localhost:3000/auth/admin. Password berasal dari `.env`, dan seed tidak mereset akun yang sudah ada. Dataset demo 200 karyawan tersedia untuk pengujian: `npm run seed:demo:plan`, lalu `npm run seed:demo`.
+
+### Docker dari source
+
+```sh
+node scripts/setup-env.mjs
+docker compose up -d --build
+docker compose exec app node db-seed.cjs
+```
+
+Compose membuat PostgreSQL 18 terpisah pada volume `postgres18_data`. Jangan menjalankan `docker compose down -v` kecuali memang ingin menghapus seluruh data dan lampiran. Instalasi lama dengan PostgreSQL 17 perlu dipindahkan manual (dump → database baru → restore).
+
+### Pemeriksaan
+
+```sh
 npm run typecheck
 npm run lint
+npm run build
 npm run test:postgres
 npm run test:security
-npm run test:api-docs
-npm run test:birthdays
+npm run test:barcode
 ```
 
-Pemindaian statis NVIDIA SkillSpector (hanya temuan baru di luar `.skillspector-baseline.yaml`):
+### Struktur
 
-```sh
-git archive --format=zip HEAD -o /tmp/hris-src.zip
-skillspector scan /tmp/hris-src.zip --no-llm --baseline .skillspector-baseline.yaml
-```
+| Folder | Isi |
+| --- | --- |
+| `src/` | Aplikasi Next.js (App Router): halaman admin, portal karyawan, dan API `/api/v1` |
+| `packages/database` | Lapisan SQL milik aplikasi (model, schema, migrasi) |
+| `scripts/` | Migrasi, seed, dan build |
+| `install.sh`, `install.ps1`, `compose.*.yml` | Installer dan file compose yang disajikan website |
+| `installer-manager/` | Sidecar kecil yang menukar kode upgrade Pro |
+| `storage/` | Berkas privat saat development (tidak masuk Git) |
 
-`packages/database` adalah sumber lapisan SQL milik aplikasi; data PostgreSQL tidak disimpan di folder tersebut. `scripts` untuk migrasi/build, `dist` hasil bundling CLI, `storage` berkas privat. Semua berada dalam proyek ini.
+Setelah mengubah `install.sh`, `install.ps1`, atau file compose, jalankan `node scripts/sync-installer.mjs` di folder `website/` agar versi yang disajikan website ikut diperbarui.
 
-Sebelum push: periksa `git status` dan pastikan `.env`, storage, dump, kunci, serta kredensial tidak masuk Git. Jangan menyalin `.git` monorepo ke repository publik.
+## Deploy di Dokploy
+
+Ikuti [panduan Dokploy Raw Compose](docs/DOKPLOY-RAW-COMPOSE.md) atau bagian [Instalasi Dokploy](https://karyon.lifistudio.com/docs#dokploy) di dokumentasi. Pasang domain ke service `app` port `3000`, aktifkan HTTPS, isi `NEXTAUTH_URL` sesuai domain, dan `TRUST_PROXY=1`.
+
+## Catatan pengelola
+
+- Implementasi Pro berada di modul privat terpisah. Repository ini hanya memuat edisi Community beserta tipe kompatibilitas dan endpoint penolakan fitur Pro.
+- Jangan mempublikasikan repository ini atau history Git workspace lama sebelum ekstraksi modul Pro dan review ekspor selesai. `private: true` di `package.json` tidak membuat repository GitHub menjadi private.
+- Sebelum push, periksa `git status` dan pastikan `.env`, storage, dump, kunci, serta kredensial tidak ikut masuk Git.
+
+---
+
+<div align="center">
+
+[karyon.lifistudio.com](https://karyon.lifistudio.com/) · [Blog](https://karyon.lifistudio.com/blog) · [Kontak](https://karyon.lifistudio.com/contact)
+
+</div>

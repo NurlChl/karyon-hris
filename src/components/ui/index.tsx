@@ -13,6 +13,7 @@ import {
 
 import { cn, ICON_STROKE, type IconType } from "./core";
 import { Combobox, type ComboboxOption } from "./Combobox";
+import { Portal } from "./Floating";
 
 export { cn, ICON_STROKE };
 export type { IconType };
@@ -162,7 +163,7 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-start justify-between gap-x-4 gap-y-3 px-5 py-4 border-b border-line",
+        "flex flex-wrap items-center justify-between gap-x-4 gap-y-3 px-5 py-4 border-b border-line",
         className
       )}
     >
@@ -204,7 +205,7 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 mb-7">
+    <header className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 mb-7">
       <div className="min-w-0">
         {eyebrow && <p className="eyebrow mb-2">{eyebrow}</p>}
         <h1 className="text-display-sm md:text-display text-heading">{title}</h1>
@@ -650,9 +651,11 @@ export function Modal({
 
   const widths = { sm: "max-w-md", md: "max-w-xl", lg: "max-w-3xl", xl: "max-w-5xl" }[size];
 
+  // Portal: a transformed/animated ancestor would otherwise trap `fixed` inside the page area.
   return (
+    <Portal>
     <div
-      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-4 overflow-y-auto backdrop-blur-[2px]"
+      className="fixed inset-0 z-[70] flex items-start sm:items-center justify-center p-4 overflow-y-auto backdrop-blur-[2px]"
       style={{ background: "var(--overlay)" }}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
@@ -688,6 +691,7 @@ export function Modal({
         )}
       </div>
     </div>
+    </Portal>
   );
 }
 

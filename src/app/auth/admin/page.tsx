@@ -36,11 +36,9 @@ function AdminLoginForm() {
       // password that works. Auth.js carries the specific reason in `code`.
       setError(
         res?.code === "db_unavailable"
-          ? "Server basis data sedang tidak dapat dihubungi, jadi login belum bisa diproses. " +
-              "Kata sandi Anda tidak bermasalah. Coba lagi beberapa saat lagi, atau periksa " +
-              "koneksi basis data bila terus berulang."
-          : "Email atau kata sandi salah, atau akun ini tidak memiliki akses administrasi. " +
-              "Akun akan terkunci sementara setelah beberapa percobaan gagal."
+          ? "Server sedang tidak dapat memproses login. Coba lagi beberapa saat lagi; " +
+              "jika berulang, periksa koneksi basis data."
+          : "Email atau kata sandi salah. Akun akan terkunci sementara setelah beberapa percobaan gagal."
       );
       setLoading(false);
       return;

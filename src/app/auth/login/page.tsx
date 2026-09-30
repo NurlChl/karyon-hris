@@ -19,7 +19,7 @@ function messageFor(code: string | null): string {
   if (!code) return "";
   switch (code) {
     case "db_unavailable":
-      return "Server basis data sedang tidak dapat dihubungi, jadi login belum bisa diproses. Kata sandi Anda tidak bermasalah. Coba lagi beberapa saat lagi, atau hubungi administrator bila terus berulang.";
+      return "Server sedang tidak dapat memproses login. Coba lagi beberapa saat lagi, atau hubungi administrator bila terus berulang.";
     case "CredentialsSignin":
     case "Callback":
       return "Email atau kata sandi salah. Setelah beberapa percobaan gagal, akun akan terkunci sementara demi keamanan.";
