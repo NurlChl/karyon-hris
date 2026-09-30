@@ -15,6 +15,7 @@ const ADMIN_ROLES = new Set(["SUPERADMIN", "DIREKSI", "HRD", "AUDIT", "GA", "SPV
 const SECTION_ROLES: Array<{ prefix: string; roles: string[] }> = [
   { prefix: "/admin/settings", roles: ["SUPERADMIN", "HRD"] },
   { prefix: "/admin/integrations", roles: ["SUPERADMIN", "HRD"] },
+  { prefix: "/admin/branding", roles: ["SUPERADMIN"] },
   { prefix: "/admin/audit", roles: ["SUPERADMIN", "AUDIT", "DIREKSI"] },
   { prefix: "/admin/payroll", roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI"] },
   { prefix: "/admin/employees", roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI"] },

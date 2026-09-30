@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff, Moon, ShieldCheck, Sun } from "lucide-react";
 import { useTheme } from "@/components/ThemeProvider";
@@ -54,8 +55,8 @@ export function AuthShell({
       <main className="flex-1 flex items-center justify-center px-5 py-10">
         <div className="w-full max-w-[400px]">
           <div className="text-center mb-8">
-            <span className="inline-grid place-items-center w-12 h-12 rounded-[14px] bg-primary text-primary-foreground font-semibold text-body mb-5">
-              HR
+            <span className="inline-flex justify-center mb-6">
+              <BrandLogo height={44} />
             </span>
             {badge && <p className="eyebrow mb-2.5">{badge}</p>}
             <h1 className="text-display-sm text-heading">{title}</h1>

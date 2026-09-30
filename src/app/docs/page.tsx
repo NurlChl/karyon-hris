@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
@@ -143,9 +144,7 @@ export default function DocsPage() {
               <Menu className="w-5 h-5" />
             </button>
             <Link href="/" className="flex items-center gap-2.5 min-w-0">
-              <span className="w-8 h-8 rounded-lg bg-primary text-primary-foreground grid place-items-center font-semibold text-label shrink-0">
-                HR
-              </span>
+              <BrandLogo variant="mark" height={30} />
               <span className="min-w-0">
                 <span className="block text-body font-semibold truncate">Dokumentasi HRIS</span>
                 <span className="hidden sm:block text-caption text-subtle">

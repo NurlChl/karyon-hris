@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -104,11 +105,8 @@ export default function LandingPage() {
       {/* ---------------- header ---------------- */}
       <header className="h-16 border-b border-line bg-background/85 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto w-full h-full px-5 flex items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-[10px] bg-primary text-primary-foreground grid place-items-center font-semibold text-label">
-              HR
-            </span>
-            <span className="font-semibold text-body-lg text-heading tracking-[-0.01em]">HRIS</span>
+          <Link href="/" className="flex items-center gap-2.5" aria-label="Beranda">
+            <BrandLogo height={32} />
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">

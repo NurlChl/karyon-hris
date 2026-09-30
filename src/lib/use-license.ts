@@ -33,9 +33,12 @@ export function invalidateLicense() {
   shared = null;
 }
 
-/** True when the running build is Pro and the signed lease grants `feature`. */
+/**
+ * True when the running build is Pro and the signed lease grants `feature`.
+ * `"pro"` means any active Pro license (features every Pro plan includes).
+ */
 export function hasFeature(license: LicenseState | null, feature: string) {
-  return !!license && license.edition === "pro" && ["active", "grace"].includes(license.status) && license.features.includes(feature);
+  return !!license && license.edition === "pro" && ["active", "grace"].includes(license.status) && (feature === "pro" || license.features.includes(feature));
 }
 
 export function useLicense() {

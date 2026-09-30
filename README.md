@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/brand/karyon-logo.webp" alt="Karyon" height="72" />
+
 # Karyon HRIS
 
 **HRIS self-hosted untuk perusahaan Indonesia.** Presensi foto dan GPS, cuti, payroll BPJS dan PPh 21, KPI, rekrutmen, dan inventaris, dijalankan di server milik perusahaan Anda sendiri.
@@ -34,6 +36,7 @@
 | Workflow disiplin (SP, pembinaan, PHK) | | ✓ |
 | REST API dengan API key dan webhook | | ✓ |
 | Backup, update, dan rollback otomatis (agent, server Linux) | | ✓ |
+| Logo perusahaan sendiri di dashboard, portal, dan halaman masuk | | ✓ |
 | Dukungan | Komunitas & dokumentasi | Email hari kerja |
 
 Daftar lengkap dan perbandingannya ada di [halaman fitur](https://karyon.lifistudio.com/features).
@@ -77,6 +80,19 @@ Menjalankan installer lagi di folder yang sama **tidak mengubah kunci di `.env`*
 Installer menukar kode menjadi kredensial pull khusus instalasi, beralih ke image Pro, lalu memeriksa kesehatan aplikasi. Jika pull atau health check gagal, image sebelumnya dipulihkan otomatis. License key bisa diganti atau dilepas dari menu yang sama saat pindah server.
 
 Opsi `--lifecycle` (Pro, khusus Linux) menambahkan agent untuk backup, update, dan rollback terjadwal. Agent memerlukan akses Docker socket, jadi opsi ini mati secara default.
+
+## Logo
+
+Community dan Pro memakai logo Karyon bawaan dari `public/brand/`:
+
+| File | Dipakai untuk |
+| --- | --- |
+| `karyon-logo.webp` | Logo tema terang (sidebar, halaman masuk, beranda) |
+| `karyon-logo-dark.webp` | Logo tema gelap |
+| `karyon-mark.webp` | Simbol untuk ruang sempit (karier, dokumentasi) |
+| `karyon-icon.png`, `karyon-apple-icon.png`, `src/app/favicon.ico` | Favicon dan ikon aplikasi |
+
+Ganti file-file tersebut (nama sama) untuk mengubah logo bawaan pada rilis berikutnya; Community tidak menyediakan pengaturan logo. Pada HRIS Pro dengan lisensi aktif, superadmin dapat mengunggah logo perusahaan di **Admin → Logo & Tampilan**. Bila lisensi berakhir, logo bawaan tampil kembali dan logo yang diunggah tetap tersimpan.
 
 ## Keamanan
 

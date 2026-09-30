@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -103,9 +104,7 @@ export default function CareerPage() {
                 <Moon className="w-[18px] h-[18px]" strokeWidth={ICON_STROKE} />
               )}
             </button>
-            <span className="w-8 h-8 rounded-[10px] bg-primary text-primary-foreground grid place-items-center font-semibold text-label">
-              HR
-            </span>
+            <BrandLogo variant="mark" height={30} />
           </div>
         </div>
       </header>

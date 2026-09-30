@@ -12,6 +12,7 @@ import {
   FileSignature,
   FileSpreadsheet,
   KeyRound,
+  Palette,
   LayoutDashboard,
   Megaphone,
   MessageSquareWarning,
@@ -145,6 +146,7 @@ const sections: NavSection[] = [
       },
       { name: "Ekspor & Impor", href: "/admin/data", icon: FileSpreadsheet, roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI", "GA", "SPV"] },
       { name: "Integrasi API", href: "/admin/integrations", icon: KeyRound, roles: ["SUPERADMIN", "HRD"] },
+      { name: "Logo & Tampilan", href: "/admin/branding", icon: Palette, roles: ["SUPERADMIN"] },
       { name: "Lisensi & Paket", href: "/admin/license", icon: ShieldCheck, roles: ["SUPERADMIN", "DIREKSI"] },
       { name: "Portal Karyawan", href: "/portal/attendance", icon: SquareArrowOutUpRight },
       { name: "Dokumentasi", href: "/docs", icon: BookOpen },
@@ -156,7 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <AppShell
       sections={sections}
-      brand={{ title: "HRIS Admin", subtitle: "Panel administrasi" }}
+      brand={{ title: "Admin", subtitle: "Panel administrasi" }}
       brandHref="/admin"
     >
       {children}

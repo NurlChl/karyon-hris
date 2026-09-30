@@ -10,6 +10,9 @@ import { Inter } from "next/font/google";
 // typeface on every device instead of whatever font the visitor has installed.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 import { ConfirmHost } from "@/components/ui/ConfirmHost";
+import { BrandingProvider } from "@/components/brand/BrandLogo";
+import { getBranding } from "@/lib/branding/server";
+import { FAVICON } from "@/lib/branding/defaults";
 
 export const metadata: Metadata = {
   title: {
@@ -20,6 +23,7 @@ export const metadata: Metadata = {
     "Presensi bergeofence, pengajuan cuti berjenjang, rekrutmen ATS, slip gaji, dan KPI dalam satu sistem.",
   applicationName: "HRIS",
   robots: { index: false, follow: false },
+  icons: { icon: [{ url: FAVICON, type: "image/png" }], apple: [{ url: "/brand/karyon-apple-icon.png" }] },
 };
 
 export const viewport: Viewport = {
@@ -31,11 +35,12 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const branding = await getBranding();
   return (
     <html
       lang="id"
@@ -55,7 +60,9 @@ export default function RootLayout({
         </a>
         <SessionProvider>
           <ThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <BrandingProvider value={branding}>
+              <ToastProvider>{children}</ToastProvider>
+            </BrandingProvider>
             <OverflowTooltip />
             <ConfirmHost />
           </ThemeProvider>

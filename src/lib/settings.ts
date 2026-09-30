@@ -183,7 +183,7 @@ export async function getSettings(force = false): Promise<SettingsSnapshot> {
     const rows = await Setting.find({}).lean<Array<{ key: string; value: unknown }>>();
     for (const row of rows) {
       // Structured, credential-like rows are read by their own modules only.
-      if (row.key === "initial_password_policy" || row.key === "license_activation") continue;
+      if (row.key === "initial_password_policy" || row.key === "license_activation" || row.key === "app_branding") continue;
       snapshot[row.key] = SETTING_MAP[row.key]
         ? coerceSetting(row.key, row.value)
         : (row.value as string);

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -326,12 +327,10 @@ export function AppShell({
   );
 
   const brandBlock = (
-    <Link href={brandHref} className="flex items-center gap-3 min-w-0">
-      <span className="w-9 h-9 rounded-[10px] bg-primary text-primary-foreground grid place-items-center font-semibold text-body-sm shrink-0">
-        HR
-      </span>
-      <span className="min-w-0">
-        <span className="block font-semibold text-body text-heading truncate leading-tight">
+    <Link href={brandHref} className="flex items-center gap-2.5 min-w-0" aria-label={`${brand.title} — ${brand.subtitle}`}>
+      <BrandLogo height={30} />
+      <span className="min-w-0 border-l border-line pl-2.5">
+        <span className="block font-semibold text-body-sm text-heading truncate leading-tight">
           {brand.title}
         </span>
         <span className="block text-caption text-subtle truncate leading-tight mt-0.5">

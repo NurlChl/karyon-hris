@@ -53,7 +53,7 @@ export default function PortalLayout({ children }: { children: React.ReactNode }
   return (
     <AppShell
       sections={sections}
-      brand={{ title: "HRIS Portal", subtitle: "Ruang kerja karyawan" }}
+      brand={{ title: "Portal", subtitle: "Ruang kerja karyawan" }}
       brandHref="/portal/attendance"
     >
       {children}
