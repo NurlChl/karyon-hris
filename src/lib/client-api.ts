@@ -26,6 +26,22 @@ export interface ApiEnvelope<T> {
   error?: { code: string; message: string; details?: unknown };
 }
 
+let endingSession = false;
+/**
+ * The edge proxy only sees the signed cookie, so a session revoked on the server
+ * (account disabled, password changed elsewhere) would otherwise leave the user
+ * stuck between a login page that redirects away and APIs that answer 401.
+ */
+function endRevokedSession() {
+  if (typeof window === "undefined" || endingSession || window.location.pathname.startsWith("/auth/")) return;
+  endingSession = true;
+  const area = window.location.pathname.startsWith("/admin") ? "/auth/admin" : "/auth/login";
+  const target = `${area}?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+  void import("next-auth/react")
+    .then(({ signOut }) => signOut({ redirectTo: target }))
+    .catch(() => window.location.assign(target));
+}
+
 async function request<T>(
   method: string,
   url: string,
@@ -60,6 +76,7 @@ async function request<T>(
     );
   }
 
+  if (res.status === 401 && payload.error?.code === "UNAUTHORIZED") endRevokedSession();
   if (!res.ok || payload.success === false) {
     throw new ApiError(
       payload.error?.code ?? "REQUEST_FAILED",

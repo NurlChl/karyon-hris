@@ -6,6 +6,7 @@ param(
   [string]$RawBase = '__HRIS_RAW_BASE__',
   [string]$Url = 'http://localhost:3000',
   [ValidateRange(1,65535)][int]$Port = 3000,
+  [ValidatePattern('^[a-z0-9][a-z0-9_-]{0,62}$')][string]$ProjectName = 'hris',
   [string]$AdminEmail = 'admin@hris.local',
   [switch]$NoStart
 )
@@ -50,7 +51,7 @@ foreach ($name in @('compose.image.yml','compose.manager.yml','compose.external.
 $newInstall = !(Test-Path -LiteralPath (Join-Path $installPath '.env'))
 if ($newInstall) {
   if ($Url -eq 'http://localhost:3000') { $Url = "http://localhost:$Port" }
-  $settings = [ordered]@{ COMPOSE_PROJECT_NAME='hris'; HRIS_IMAGE=$Image; HRIS_EDITION='community'; BIND_ADDRESS='127.0.0.1'; APP_PORT=$Port; NEXTAUTH_URL=$Url.TrimEnd('/'); TRUST_PROXY='0'; HRIS_LICENSE_SERVER=$LicenseServer.TrimEnd('/'); HRIS_DB_NAME='hris'; HRIS_DB_USER='hris'; HRIS_DATABASE_URL=''; HRIS_DB_SSL='disable' }
+  $settings = [ordered]@{ COMPOSE_PROJECT_NAME=$ProjectName; HRIS_IMAGE=$Image; HRIS_EDITION='community'; BIND_ADDRESS='127.0.0.1'; APP_PORT=$Port; NEXTAUTH_URL=$Url.TrimEnd('/'); TRUST_PROXY='0'; HRIS_LICENSE_SERVER=$LicenseServer.TrimEnd('/'); HRIS_DB_NAME='hris'; HRIS_DB_USER='hris'; HRIS_DATABASE_URL=''; HRIS_DB_SSL='disable' }
   foreach ($key in @('POSTGRES_ADMIN_PASSWORD','HRIS_DB_PASSWORD','AUTH_SECRET','ENCRYPTION_KEY','STORAGE_SIGNING_SECRET','CRON_SECRET','HRIS_MANAGER_TOKEN','HRIS_AGENT_TOKEN')) { $settings[$key] = Random-Hex }
   foreach ($entry in @(@('EMAIL_PROVIDER','smtp'),@('EMAIL_FROM',''),@('SMTP_HOST',''),@('SMTP_PORT','587'),@('SMTP_USER',''),@('SMTP_PASS',''),@('RESEND_API_KEY',''))) { $settings[$entry[0]] = $entry[1] }
   $envHeader = "# Dibuat oleh installer HRIS. Simpan privat dan backup bersama database.`n# Secret inti diisi otomatis; jangan diganti setelah data tersimpan.`n# Email opsional saat instalasi, tetapi wajib dikonfigurasi sebelum mengirim OTP/notifikasi.`n# Pilih SMTP atau Resend dan gunakan alamat pengirim dari domain yang sudah diverifikasi.`n"
@@ -65,7 +66,7 @@ $separator = if ([Environment]::OSVersion.Platform -eq 'Win32NT') { ';' } else {
 $composeFiles = @('compose.image.yml','compose.manager.yml')
 if ((Read-Setting 'HRIS_DATABASE_URL').Trim("'",'"')) { $composeFiles += 'compose.external.yml' }
 Set-Setting 'COMPOSE_FILE' ($composeFiles -join $separator)
-Write-Host "Konfigurasi siap di $installPath. Database PostgreSQL disiapkan otomatis."
+if ($composeFiles -contains 'compose.external.yml') { Write-Host "Konfigurasi siap di $installPath. Memakai PostgreSQL dari HRIS_DATABASE_URL." } else { Write-Host "Konfigurasi siap di $installPath. Database PostgreSQL bawaan disiapkan otomatis; tidak perlu menyiapkan database sendiri." }
 if ($NoStart) { Write-Host 'Isi HRIS_DATABASE_URL di .env jika memakai database sendiri, lalu jalankan installer lagi dengan -Dir yang sama.'; return }
 if (!(Get-Command docker -ErrorAction SilentlyContinue)) { throw 'Pasang dan jalankan Docker Desktop, lalu jalankan installer ini kembali. Tidak perlu membuka WSL.' }
 Push-Location $installPath
@@ -73,7 +74,8 @@ try {
   Docker-Run @('info','--format','{{.OSType}}')
   Docker-Run @('compose','version')
   Docker-Run @('compose','pull')
-  Docker-Run @('compose','up','-d')
+  & docker compose up -d
+  if ($LASTEXITCODE -ne 0) { throw "Container belum bisa dijalankan. Jika pesan di atas menyebut 'port is already allocated', port $(Read-Setting 'APP_PORT') sudah dipakai aplikasi lain: ubah APP_PORT (dan NEXTAUTH_URL bila memakai localhost) di $installPath\.env ke port lain, lalu jalankan 'docker compose up -d' di folder itu." }
   $healthy = $false
   for ($attempt=0; $attempt -lt 60; $attempt++) {
     # Windows PowerShell 5.1 can turn native stderr into terminating errors.
@@ -101,4 +103,5 @@ try {
     } finally { $env:SEED_ADMIN_EMAIL=$oldEmail; $env:SEED_ADMIN_PASSWORD=$oldPassword }
   }
   Write-Host 'HRIS siap. Untuk Pro, beli lisensi lalu tempel di menu Lisensi & Paket. Upgrade diproses otomatis.'
+  if ($composeFiles -notcontains 'compose.external.yml') { Write-Host 'Ingin memakai PostgreSQL sendiri nanti? Isi HRIS_DATABASE_URL di .env, pindahkan data lama (pg_dump/pg_restore), lalu jalankan installer ini lagi di folder yang sama.' }
 } finally { Pop-Location }

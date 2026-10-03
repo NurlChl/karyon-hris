@@ -24,7 +24,7 @@ jobs:
 
       - name: Compute lowercase image name
         # Docker/GHCR image names must be all lowercase; github.repository_owner
-        # keeps the account's original casing (e.g. NurlChl).
+        # keeps the account's original casing (e.g. LifiStudio).
         run: echo "IMAGE_NAME=$(echo '${{ github.repository_owner }}/hris' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR

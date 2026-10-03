@@ -30,13 +30,15 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      HRIS_DATABASE_URL: ""
+      # Empty = the bundled postgres service below. Put an external PostgreSQL URL in .env any time after installing;
+      # it takes precedence over HRIS_DB_HOST (run the installer again to also stop the bundled database).
+      HRIS_DATABASE_URL: ${HRIS_DATABASE_URL:-}
       HRIS_DB_HOST: postgres
       HRIS_DB_PORT: "5432"
       HRIS_DB_NAME: ${HRIS_DB_NAME:-hris}
       HRIS_DB_USER: ${HRIS_DB_USER:-hris}
       HRIS_DB_PASSWORD: ${HRIS_DB_PASSWORD:?Set HRIS_DB_PASSWORD}
-      HRIS_DB_SSL: disable
+      HRIS_DB_SSL: ${HRIS_DB_SSL:-disable}
       AUTH_SECRET: ${AUTH_SECRET:?Set session secret}
       AUTH_TRUST_HOST: "true"
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}

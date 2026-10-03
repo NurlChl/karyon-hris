@@ -156,7 +156,7 @@ export default function LicensePage() {
                       <Button variant="secondary" icon={Copy} onClick={() => void copy(upgrade.command)}>Salin</Button>
                     </div>
                     <p className="text-caption text-muted">Sudah punya file install.sh? Alternatif: <code className="font-mono break-all">{upgrade.localCommand}</code></p>
-                    <Alert>Perintah ini masuk ke registry privat dengan kredensial khusus instalasi ini, menarik image Pro, lalu me-restart aplikasi. Setelah selesai, muat ulang halaman ini: edisi aplikasi berubah menjadi Pro.</Alert>
+                    <Alert>Perintah ini mengunduh HRIS Pro khusus untuk instalasi ini lalu me-restart aplikasi sebentar. Setelah selesai, muat ulang halaman ini: edisi aplikasi berubah menjadi Pro.</Alert>
                   </>
                 )}
               </CardBody>
@@ -164,7 +164,7 @@ export default function LicensePage() {
           )}
 
           <Card>
-            <CardHeader title="Fitur Pro" description="Setiap endpoint Pro memeriksa lisensi bertanda tangan di server. Fitur Community tetap berjalan apa pun status lisensinya." />
+            <CardHeader title="Fitur Pro" description="Fitur yang terbuka sesuai lisensi Anda. Fitur Community tetap berjalan apa pun status lisensinya." />
             <ul className="divide-y divide-[var(--border)]">
               {Object.entries(data.featureLabels).map(([key, label]) => {
                 const on = data.edition === "pro" && data.features.includes(key);

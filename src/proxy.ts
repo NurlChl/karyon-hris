@@ -1,11 +1,9 @@
 import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import { authConfig } from "./auth.config";
+import { ADMIN_ROLES, landingFor, safeCallback } from "./lib/auth/landing";
 
 const { auth } = NextAuth(authConfig);
-
-/** Roles allowed anywhere under /admin. */
-const ADMIN_ROLES = new Set(["SUPERADMIN", "DIREKSI", "HRD", "AUDIT", "GA", "SPV"]);
 
 /**
  * Admin sections that only a subset of admin roles may open. Route handlers
@@ -27,12 +25,6 @@ const SECTION_ROLES: Array<{ prefix: string; roles: string[] }> = [
   { prefix: "/admin/contracts", roles: ["SUPERADMIN", "HRD", "AUDIT", "DIREKSI"] },
 ];
 
-/** Where a given role lands after signing in. */
-function landingFor(role: string | undefined): string {
-  if (role && ADMIN_ROLES.has(role)) return "/admin";
-  return "/portal/attendance";
-}
-
 export const proxy = auth((req) => {
   const { nextUrl } = req;
   const path = nextUrl.pathname;
@@ -44,6 +36,7 @@ export const proxy = auth((req) => {
   const isOnPortal = path.startsWith("/portal");
   const isOnDocs = path === "/docs" || path.startsWith("/docs/");
   const isOnApiDocs = path === "/api-docs" || path.startsWith("/api-docs/");
+  const isOnPrint = path.startsWith("/print/");
   const isOnAuthPage =
     path.startsWith("/auth/login") ||
     path.startsWith("/auth/admin") ||
@@ -53,7 +46,7 @@ export const proxy = auth((req) => {
   // Use the matching login surface for each protected area. This is a UX and
   // phishing-resistance boundary; the role checks below and in route handlers
   // remain the actual authorisation controls.
-  if ((isOnAdmin || isOnPortal || isOnDocs || isOnApiDocs) && !isLoggedIn) {
+  if ((isOnAdmin || isOnPortal || isOnDocs || isOnApiDocs || isOnPrint) && !isLoggedIn) {
     const loginUrl = new URL(isOnAdmin || isOnApiDocs ? "/auth/admin" : "/auth/login", nextUrl);
     loginUrl.searchParams.set("callbackUrl", path + nextUrl.search);
     return NextResponse.redirect(loginUrl);
@@ -91,8 +84,10 @@ export const proxy = auth((req) => {
   }
 
   // --- Signed-in users should not sit on a login page --------------------
+  // Back to the page that asked for a login when the role may open it, else the role's home.
   if (isLoggedIn && isOnAuthPage) {
-    return NextResponse.redirect(new URL(landingFor(role), nextUrl));
+    const target = mustChangePassword ? "/portal/profile?force_password=1" : safeCallback(nextUrl.searchParams.get("callbackUrl"), role) ?? landingFor(role);
+    return NextResponse.redirect(new URL(target, nextUrl));
   }
 
   return NextResponse.next();
@@ -104,6 +99,7 @@ export const config = {
     "/portal/:path*",
     "/docs",
     "/api-docs",
+    "/print/:path*",
     "/auth/login",
     "/auth/admin",
     "/auth/forgot-password",
