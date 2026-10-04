@@ -757,7 +757,7 @@ function EmployeesView() {
       {/* Slide-over Form Panel */}
       <AnimatePresence>
         {formOpen && (
-          <Portal><div className="fixed inset-0 z-50 flex items-center justify-end">
+          <Portal><div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-end">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

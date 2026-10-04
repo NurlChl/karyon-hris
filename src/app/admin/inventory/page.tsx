@@ -553,7 +553,7 @@ export default function InventoryAdminPage() {
 
       {/* Asset Form Drawer Modal */}
       {isFormOpen && (
-        <Portal><div className="fixed inset-0 z-50 flex items-center justify-end bg-overlay backdrop-blur-xs">
+        <Portal><div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-end bg-overlay backdrop-blur-xs">
           <div className="w-full max-w-lg h-full bg-surface border-l border-line relative z-10 shadow-[var(--shadow-pop)] p-6 flex flex-col justify-between overflow-y-auto">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-line mb-6">
@@ -656,7 +656,7 @@ export default function InventoryAdminPage() {
 
       {/* Assign Asset Modal */}
       {isAssignOpen && selectedAsset && (
-        <Portal><div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
+        <Portal><div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
           <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
             <div className="flex justify-between items-center pb-4 border-b border-line">
               <h3 className="text-body font-semibold text-foreground uppercase">Tugaskan Aset Inventaris</h3>
@@ -753,7 +753,7 @@ export default function InventoryAdminPage() {
       )}
       {/* Monthly Physical Audit Scan Modal */}
       {isAuditOpen && (
-        <Portal><div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4 animate-fade-in">
+        <Portal><div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4 animate-fade-in">
           <div className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col gap-4">
             <div className="flex justify-between items-center pb-4 border-b border-line">
               <h3 className="text-body font-semibold text-foreground">Audit fisik bulanan inventaris</h3>

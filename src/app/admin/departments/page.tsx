@@ -324,7 +324,7 @@ export default function DepartmentsPage() {
       {/* Overlay Form Modal */}
       <AnimatePresence>
         {formOpen && (
-          <Portal><div className="fixed inset-0 z-50 flex items-center justify-center font-sans">
+          <Portal><div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center font-sans">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

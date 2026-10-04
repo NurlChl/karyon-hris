@@ -255,7 +255,7 @@ export default function InventoryEmployeePage() {
 
         {/* Signature Digital Canvas Modal */}
         {selectedAsg && (
-          <Portal><div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
+          <Portal><div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-overlay backdrop-blur-xs p-4">
             <div className="w-full max-w-md bg-surface border border-line rounded-xl shadow-[var(--shadow-pop)] p-6 flex flex-col">
               <div className="flex justify-between items-center pb-4 border-b border-line">
                 <div>
