@@ -54,7 +54,8 @@ export function useFloatingPlacement(
     const r = el.getBoundingClientRect();
     const gap = 6;
     const vh = window.innerHeight;
-    const vw = window.innerWidth;
+    // clientWidth excludes the page scrollbar, so a panel never hides under it.
+    const vw = document.documentElement.clientWidth || window.innerWidth;
 
     const panelWidth = Math.min(Math.max(width ?? r.width, r.width), vw - 16);
     const below = vh - r.bottom - gap - 8;

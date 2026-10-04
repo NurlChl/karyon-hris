@@ -19,7 +19,7 @@ export const useBranding = () => useContext(BrandingContext);
 export function BrandLogo({ variant = "full", height = 32, className = "" }: { variant?: "full" | "mark"; height?: number; className?: string }) {
   const brand = useBranding();
   /* eslint-disable @next/next/no-img-element -- logo files of unknown size, possibly data URLs from the Pro setting */
-  if (variant === "mark") return <img src={brand.mark} alt={brand.name} className={`block shrink-0 object-contain ${className}`} style={{ height, width: height }} />;
+  if (variant === "mark") return <img src={brand.mark} alt={brand.name} className={`block shrink-0 object-contain ${className}`} style={{ height, width: "auto" }} />;
   return (
     <>
       <img src={brand.logo} alt={brand.name} className={`block w-auto max-w-[180px] object-contain dark:hidden ${className}`} style={{ height }} />

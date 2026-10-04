@@ -15,9 +15,9 @@ export interface AppBranding {
 
 export const DEFAULT_BRANDING: AppBranding = {
   name: "Karyon",
-  logo: "/brand/karyon-logo.webp",
-  logoDark: "/brand/karyon-logo-dark.webp",
-  mark: "/brand/karyon-mark.webp",
+  logo: "/brand/karyon-logo.svg",
+  logoDark: "/brand/karyon-logo-dark.svg",
+  mark: "/brand/karyon-mark.svg",
   custom: false,
 };
 

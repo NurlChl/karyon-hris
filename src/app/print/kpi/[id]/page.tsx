@@ -55,10 +55,10 @@ interface Evaluation {
   templateId: { name: string; description?: string } | null;
 }
 
-const INK = "#14142b";
-const MUTED = "#545876";
+const INK = "#1b2a41";
+const MUTED = "#4c5c74";
 const LINE = "#d9dce8";
-const ACCENT = "#4f46e5";
+const ACCENT = "#0468c9";
 
 export default function KpiPrintPage() {
   return (
@@ -200,7 +200,7 @@ function KpiPrint() {
               marginBottom: 22,
               padding: "14px 18px",
               borderRadius: 8,
-              background: "#eeedfe",
+              background: "#e8f2fc",
               border: "1px solid #cfcbfa",
               display: "flex",
               justifyContent: "space-between",

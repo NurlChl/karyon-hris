@@ -8,7 +8,7 @@ import { Inter } from "next/font/google";
 
 // Self-hosted Inter at build time, so the website and HRIS render the same
 // typeface on every device instead of whatever font the visitor has installed.
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const inter = Inter({ subsets: ["latin"], axes: ["opsz"], variable: "--font-inter", display: "swap" });
 import { ConfirmHost } from "@/components/ui/ConfirmHost";
 import { BrandingProvider } from "@/components/brand/BrandLogo";
 import { getBranding } from "@/lib/branding/server";

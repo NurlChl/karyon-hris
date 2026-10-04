@@ -3,7 +3,7 @@ import { wrapRouteHandler, apiSuccess, type RouteContext } from "@/lib/api";
 import { requireUser, requirePermission, parseBody, scopeFilter, BadRequest, Forbidden, NotFound } from "@/lib/guard";
 import { checkPermission } from "@/lib/rbac";
 import { logActivity } from "@/lib/audit/logger";
-import { decrypt, maskTail } from "@/lib/crypto";
+import { decryptOrEmpty, maskTail } from "@/lib/crypto";
 import { storageProvider, decodeDataUrl } from "@/lib/storage";
 import Employee from "@/models/Employee";
 import User from "@/models/User";
@@ -71,16 +71,18 @@ export const GET = wrapRouteHandler<Ctx>(async (req, ctxParams) => {
   const full = isSelf || scope === "all";
   const bank = employee.bankAccount as { bankName?: string; accountNumber?: string; accountHolder?: string } | undefined;
 
+  let unreadable = false;
+  const open = (value: string) => decryptOrEmpty(value, () => { unreadable = true; });
   const data = {
     ...employee,
-    nik: employee.nik ? (full ? decrypt(employee.nik as string) : maskTail(employee.nik as string)) : "",
-    npwp: employee.npwp ? (full ? decrypt(employee.npwp as string) : maskTail(employee.npwp as string)) : "",
+    nik: employee.nik ? (full ? open(employee.nik as string) : maskTail(employee.nik as string)) : "",
+    npwp: employee.npwp ? (full ? open(employee.npwp as string) : maskTail(employee.npwp as string)) : "",
     bankAccount: bank
       ? {
           ...bank,
           accountNumber: bank.accountNumber
             ? full
-              ? decrypt(bank.accountNumber)
+              ? open(bank.accountNumber)
               : maskTail(bank.accountNumber)
             : "",
         }
@@ -89,6 +91,7 @@ export const GET = wrapRouteHandler<Ctx>(async (req, ctxParams) => {
       ? await storageProvider.getSignedUrl(employee.photoUrl as string, 900)
       : "",
     isPiiMasked: !full,
+    ...(unreadable ? { piiUnreadable: true } : {}),
   };
 
   return apiSuccess(data, "Berhasil memuat data karyawan");

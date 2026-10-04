@@ -63,8 +63,8 @@ export interface PayslipData {
   generatedAt?: string;
 }
 
-const INK = "#14142b";
-const MUTED = "#545876";
+const INK = "#1b2a41";
+const MUTED = "#4c5c74";
 const LINE = "#d9dce8";
 
 export function PayslipDocument({
@@ -74,7 +74,7 @@ export function PayslipDocument({
   template: PayslipTemplateShape;
   data: PayslipData;
 }) {
-  const accent = template.accentColor || "#4f46e5";
+  const accent = template.accentColor || "#0468c9";
   const blocks = template.blocks.filter((b) => b.enabled);
 
   return (

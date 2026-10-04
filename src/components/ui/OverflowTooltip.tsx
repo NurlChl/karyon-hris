@@ -98,7 +98,7 @@ export function OverflowTooltip() {
     const el = box.current;
     if (!el || !tip) return;
     const w = el.offsetWidth;
-    el.style.left = `${Math.min(Math.max(12 + w / 2, tip.left), window.innerWidth - 12 - w / 2)}px`;
+    el.style.left = `${Math.min(Math.max(12 + w / 2, tip.left), document.documentElement.clientWidth - 12 - w / 2)}px`;
   }, [tip]);
 
   if (!tip) return null;

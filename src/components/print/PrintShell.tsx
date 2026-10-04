@@ -62,13 +62,13 @@ export function PrintShell({
         <div className="min-w-0">
           <a
             href={backHref}
-            className="inline-flex items-center gap-2 text-body-sm font-medium text-[#545876] hover:text-[#14142b] transition-colors"
+            className="inline-flex items-center gap-2 text-body-sm font-medium text-[#4c5c74] hover:text-[#1b2a41] transition-colors"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={ICON_STROKE} />
             {backLabel}
           </a>
-          <h1 className="mt-2 text-title font-semibold text-[#1f1b4d] truncate">{title}</h1>
-          {subtitle && <p className="text-body-sm text-[#545876] mt-1">{subtitle}</p>}
+          <h1 className="mt-2 text-title font-semibold text-[#01162f] truncate">{title}</h1>
+          {subtitle && <p className="text-body-sm text-[#4c5c74] mt-1">{subtitle}</p>}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -78,7 +78,7 @@ export function PrintShell({
         </div>
       </div>
 
-      <p className="no-print max-w-[820px] mx-auto mb-4 text-label text-[#686d8b] leading-relaxed">
+      <p className="no-print max-w-[820px] mx-auto mb-4 text-label text-[#66768d] leading-relaxed">
         Pada dialog cetak, pilih tujuan <strong>Save as PDF</strong> untuk menyimpan dokumen ini
         sebagai berkas PDF. Aktifkan opsi <strong>Background graphics</strong> agar warna dan garis
         tabel ikut tercetak.
@@ -112,7 +112,7 @@ export function Paper({
 
   return (
     <div
-      className="paper mx-auto bg-white text-[#14142b]"
+      className="paper mx-auto bg-white text-[#1b2a41]"
       style={{
         width,
         minHeight,

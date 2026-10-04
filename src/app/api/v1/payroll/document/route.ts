@@ -75,7 +75,7 @@ export const GET = wrapRouteHandler(async (req) => {
   const resolvedTemplate = template ?? {
     name: "Bawaan",
     paperSize: "A4",
-    accentColor: "#4f46e5",
+    accentColor: "#0468c9",
     baseFontSize: 12,
     margin: 18,
     companyName: String(settings.company_name ?? ""),

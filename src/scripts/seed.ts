@@ -460,7 +460,7 @@ export async function seed() {
         description: "Tata letak bawaan yang dipakai untuk seluruh karyawan.",
         isDefault: true,
         paperSize: "A4",
-        accentColor: "#4f46e5",
+        accentColor: "#0468c9",
         baseFontSize: 12,
         margin: 18,
         companyName: "PT Contoh Nusantara",

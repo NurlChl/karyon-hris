@@ -14,7 +14,7 @@ import {
 } from "@/lib/guard";
 import { checkPermission } from "@/lib/rbac";
 import { logActivity } from "@/lib/audit/logger";
-import { decrypt, encryptOnce, maskTail } from "@/lib/crypto";
+import { decryptOrEmpty, encryptOnce, maskTail } from "@/lib/crypto";
 import { getSettings } from "@/lib/settings";
 import Employee from "@/models/Employee";
 import User from "@/models/User";
@@ -159,21 +159,26 @@ export const GET = wrapRouteHandler(async (req) => {
 /** Decrypts or masks the protected fields depending on the caller's scope. */
 function revealSensitive(doc: Record<string, unknown>, full: boolean) {
   const bank = doc.bankAccount as { bankName?: string; accountNumber?: string; accountHolder?: string } | undefined;
+  // One record that cannot be opened (key mismatch, damaged value) must not fail
+  // the whole list: it comes back empty and flagged; re-entering it re-encrypts it.
+  let unreadable = false;
+  const open = (value: string) => decryptOrEmpty(value, () => { unreadable = true; });
   return {
     ...doc,
-    nik: doc.nik ? (full ? decrypt(doc.nik as string) : maskTail(doc.nik as string)) : "",
-    npwp: doc.npwp ? (full ? decrypt(doc.npwp as string) : maskTail(doc.npwp as string)) : "",
+    nik: doc.nik ? (full ? open(doc.nik as string) : maskTail(doc.nik as string)) : "",
+    npwp: doc.npwp ? (full ? open(doc.npwp as string) : maskTail(doc.npwp as string)) : "",
     bankAccount: bank
       ? {
           ...bank,
           accountNumber: bank.accountNumber
             ? full
-              ? decrypt(bank.accountNumber)
+              ? open(bank.accountNumber)
               : maskTail(bank.accountNumber)
             : "",
         }
       : bank,
     isPiiMasked: !full,
+    ...(unreadable ? { piiUnreadable: true } : {}),
   };
 }
 

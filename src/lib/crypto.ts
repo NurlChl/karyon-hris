@@ -83,6 +83,15 @@ export function decrypt(value: string): string {
   return value;
 }
 
+/**
+ * For screens that show a record to fix it: a value that cannot be opened comes
+ * back empty and `onUnreadable` is called, so one damaged field (or a key mismatch)
+ * does not hide the whole record. Re-entering the value encrypts it again.
+ */
+export function decryptOrEmpty(value: string, onUnreadable?: () => void): string {
+  try { return decrypt(value); } catch { onUnreadable?.(); return ""; }
+}
+
 /** True when the value already carries an encrypted envelope. */
 export function isEncrypted(value: string): boolean {
   return typeof value === "string" && (value.startsWith(`${PREFIX}:`) || /^[0-9a-f]{32}:[0-9a-f]+$/.test(value));
@@ -100,7 +109,10 @@ export function encryptOnce(value: string): string {
  */
 export function maskTail(value: string, visible = 4): string {
   if (!value) return "-";
-  const plain = decrypt(value);
+  // A masked list never needs the plain value: one unreadable record (key
+  // mismatch, damaged row) shows as fully masked instead of failing the whole list.
+  let plain: string;
+  try { plain = decrypt(value); } catch { return "••••••"; }
   if (plain.length <= visible) return "•".repeat(plain.length);
   return "•".repeat(Math.min(plain.length - visible, 8)) + plain.slice(-visible);
 }

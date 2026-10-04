@@ -7,31 +7,25 @@
 
    Palette reasoning
    -----------------
-   The semantic slots claim most of the colour wheel: success sits in green
-   (~155°), warning in amber (~38°), danger in rose (~352°), info in cyan
-   (~193°). A brand hue landing near any of those makes a primary button look
-   like a status. That leaves the blue→violet arc, and indigo (~246°) sits far
-   enough from cyan-info to stay distinct while reading calmer and more
-   institutional than a pure violet.
+   Taken from the Karyon logo: deep navy ink (#01162F) for headings, ocean
+   blue for the primary action, and the logo's teal as the single accent.
+   Status colours keep their own hues so a primary button never reads as a
+   status: success is a clear green (~140°), warning amber, danger rose, info
+   cyan (~190°), all distinct from the brand blue (~210°) and teal (~175°).
 
-   Grounds are never neutral grey. Every surface carries 4–8% of the brand hue,
-   so a plain white card reads as *lifted* off the page without needing a
-   shadow. That is what lets the whole interface stay flat.
+   Grounds are never neutral grey. Every surface carries a little of the navy
+   hue, so a plain white card reads as *lifted* off the page without needing a
+   shadow. That keeps the interface flat, calm and easy on the eyes.
 
-   Gold (#F5B027) is the single warm accent. It is deliberately NOT a semantic
-   colour — it marks the one thing on a screen that matters most, and nothing
-   else. Used as a fill with near-black text it clears 9:1 contrast; it is never
-   used as text on white, where it would fail.
+   Teal is emphasis only, never a status. White text on it clears 5.2:1.
 
-   Contrast, measured in-browser against the real grounds rather than against
-   pure white, for both themes. Every pairing the interface actually renders
-   clears the 4.5:1 AA floor, including each status colour on its own soft badge
-   background, which is the tightest pair in the system:
+   Contrast (WCAG), measured on the real grounds for both themes. Every pairing
+   the interface renders clears the 4.5:1 AA floor:
 
-     light   foreground 16.9   muted 6.5   subtle 4.7   primary/soft 5.4
-             success/soft 5.3   warning/soft 4.9   danger/soft 4.7   info/soft 4.7
-     dark    foreground 16.3   muted 8.2   subtle 5.1   primary/soft 5.5
-             success/soft 7.0   warning/soft 8.4   danger/soft 6.6   info/soft 7.5
+     light   foreground 13.6   muted 6.4   subtle 5.0   primary/soft 4.8
+             success/soft 5.2   warning/soft 4.8   danger/soft 4.7   info/soft 4.6
+     dark    foreground 14.8   muted 8.4   subtle 5.4   primary/soft 5.9
+             success/soft 8.0   warning/soft 8.8   danger/soft 7.0   info/soft 7.7
    ========================================================================== */
 
 ::view-transition-old(root), ::view-transition-new(root) { animation-duration: 280ms; animation-timing-function: ease-in-out; }
@@ -39,48 +33,49 @@
 :root {
   color-scheme: light;
 
-  /* Grounds — indigo-tinted, never neutral grey */
-  --background: #f7f7fb;
+  /* Grounds — cool, navy-tinted (Karyon logo palette) */
+  --background: #f6f8fb;
   --surface: #ffffff;
-  --surface-2: #f1f2f8;
-  --surface-hover: #e9ebf5;
-  --overlay: rgb(17 17 38 / 0.5);
+  --surface-2: #eff3f8;
+  --surface-hover: #e8eef6;
+  --overlay: rgb(1 22 47 / 0.45);
 
   /* Text */
-  --foreground: #14142b;
-  --heading: #1f1b4d;
-  --muted: #545876;
-  --subtle: #686d8b;
+  --foreground: #1b2a41;
+  --heading: #01162f;
+  --muted: #4c5c74;
+  --subtle: #5c6c83;
 
   /* Lines */
-  --border: #e4e6f0;
-  --border-strong: #cdd1e3;
+  --border: #e2e8f0;
+  --border-strong: #c9d4e2;
 
   /* Brand */
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-soft: #eeedfe;
+  --primary: #0468c9;
+  --primary-hover: #0357aa;
+  --primary-soft: #e8f2fc;
   --primary-foreground: #ffffff;
 
-  /* Warm accent — emphasis only, never a status */
-  --accent: #f5b027;
-  --accent-hover: #e09f16;
-  --accent-soft: #fef5e3;
-  --accent-foreground: #14142b;
+  /* Teal accent from the logo — emphasis only, never a status */
+  --accent: #037a73;
+  --accent-hover: #02655f;
+  --accent-soft: #e3f5f2;
+  --accent-foreground: #ffffff;
 
   /* Semantics */
-  --success: #0f7152;
+  --success: #137336;
   --success-foreground: #ffffff;
-  --success-soft: #e4f5ee;
-  --warning: #9a5a0b;
-  --warning-soft: #fdf1df;
-  --danger: #c92a45;
+  --success-soft: #e3f4ec;
+  --warning: #93600f;
+  --warning-soft: #fcf2e1;
+  --danger: #c4314b;
   --danger-foreground: #ffffff;
-  --danger-soft: #fceaee;
+  --danger-soft: #fcebee;
   --info: #0e7490;
-  --info-soft: #e2f2f6;
+  --info-soft: #e3f1f8;
 
-  --ring: #4f46e5;
+  --ring: #0468c9;
+  --brand-gradient: linear-gradient(135deg, #02419f 0%, #0283fc 55%, #03bda6 100%);
 
   /* Radii — 10 for controls, 14 for cards, matching the reference's generous
      rounding without turning everything into a pill. */
@@ -89,49 +84,50 @@
   --radius-lg: 20px;
 
   /* Shadows exist only for things that genuinely float above the page. */
-  --shadow-pop: 0 16px 40px -16px rgb(17 17 38 / 0.22), 0 2px 8px -2px rgb(17 17 38 / 0.08);
-  --shadow-raise: 0 2px 6px -2px rgb(17 17 38 / 0.1);
+  --shadow-pop: 0 24px 56px -24px rgb(1 22 47 / 0.26), 0 2px 8px -3px rgb(1 22 47 / 0.08);
+  --shadow-raise: 0 1px 2px rgb(1 22 47 / 0.05), 0 6px 18px -12px rgb(1 22 47 / 0.16);
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: #0c0c17;
-  --surface: #13131f;
-  --surface-2: #1b1b2b;
-  --surface-hover: #23233a;
-  --overlay: rgb(4 4 12 / 0.72);
+  --background: #040c18;
+  --surface: #0a1526;
+  --surface-2: #0f1d33;
+  --surface-hover: #15253f;
+  --overlay: rgb(1 6 14 / 0.72);
 
-  --foreground: #eaeaf5;
-  --heading: #ffffff;
-  --muted: #a3a7c2;
-  --subtle: #7c81a0;
+  --foreground: #d8e1ec;
+  --heading: #eef3f9;
+  --muted: #9babc0;
+  --subtle: #77889f;
 
-  --border: #26263a;
-  --border-strong: #35354f;
+  --border: #172740;
+  --border-strong: #24385a;
 
-  --primary: #8f86ff;
-  --primary-hover: #a79fff;
-  --primary-soft: #1e1b3d;
-  --primary-foreground: #0c0c17;
+  --primary: #4ba3ff;
+  --primary-hover: #6db5ff;
+  --primary-soft: #0d2543;
+  --primary-foreground: #03101f;
 
-  --accent: #f5b027;
-  --accent-hover: #ffc247;
-  --accent-soft: #2e2413;
-  --accent-foreground: #14142b;
+  --accent: #2fcfb7;
+  --accent-hover: #55dcc8;
+  --accent-soft: #0a2a2b;
+  --accent-foreground: #03201d;
 
-  --success: #36c48f;
+  --success: #46d38a;
   --success-foreground: #06140e;
-  --success-soft: #10291f;
-  --warning: #edb45a;
-  --warning-soft: #2c2210;
-  --danger: #ff7189;
+  --success-soft: #0b2a20;
+  --warning: #f0b75c;
+  --warning-soft: #2b2110;
+  --danger: #ff7a8f;
   --danger-foreground: #1a0509;
-  --danger-soft: #2d1219;
+  --danger-soft: #2d121a;
   --info: #4cc2e0;
-  --info-soft: #10262e;
+  --info-soft: #0c2433;
 
-  --ring: #8f86ff;
+  --ring: #4ba3ff;
+  --brand-gradient: linear-gradient(135deg, #0a5fd1 0%, #2b97ff 55%, #2fcfb7 100%);
 
   --shadow-pop: 0 20px 48px -18px rgb(0 0 0 / 0.72), 0 2px 8px -2px rgb(0 0 0 / 0.5);
   --shadow-raise: 0 2px 6px -2px rgb(0 0 0 / 0.4);
@@ -252,6 +248,11 @@ body {
      ss01 fixes the default Inter 'l' which is easy to confuse with capital I. */
   font-feature-settings: "cv11", "ss01";
   font-synthesis-weight: none;
+  /* Optical sizes: large headings use Inter's tighter display cut automatically. */
+  font-optical-sizing: auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /*

@@ -3,8 +3,8 @@
 import React from "react";
 import { fillPlaceholders, inlineRuns, parseContract } from "@/lib/hr/contracts";
 
-const INK = "#14142b";
-const MUTED = "#545876";
+const INK = "#1b2a41";
+const MUTED = "#4c5c74";
 const LINE = "#d9dce8";
 
 /**

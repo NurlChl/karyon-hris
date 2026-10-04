@@ -81,7 +81,7 @@ const PayslipTemplateSchema = new Schema<IPayslipTemplate>(
     isDefault: { type: Boolean, default: false, index: true },
 
     paperSize: { type: String, enum: ["A4", "Letter"], default: "A4" },
-    accentColor: { type: String, default: "#4f46e5" },
+    accentColor: { type: String, default: "#0468c9" },
     baseFontSize: { type: Number, default: 12, min: 9, max: 16 },
     margin: { type: Number, default: 18, min: 5, max: 40 },
     showLogo: { type: Boolean, default: false },
